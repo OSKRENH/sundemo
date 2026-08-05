@@ -34,7 +34,26 @@
           <p>Квартира №2 на втором этаже</p>
         </div>
 
-        <img class="sun-scheme" src="assets/sun-scheme.svg" alt="Схема сторон света и движения солнца" />
+        <div class="sun-compass" id="sunCompass" aria-label="Трёхмерная роза ветров и положение солнца">
+          <div class="compass-perspective">
+            <div class="compass-dial" id="compassDial">
+              <span class="compass-disc"></span>
+              <span class="compass-ring compass-ring--outer"></span>
+              <span class="compass-ring compass-ring--inner"></span>
+              <span class="compass-axis compass-axis--ns"></span>
+              <span class="compass-axis compass-axis--ew"></span>
+              <span class="compass-arrow"></span>
+              <span class="compass-building"><i></i></span>
+              <span class="compass-orbit"></span>
+              <span class="compass-sun" id="compassSun"><i></i></span>
+              <b class="cardinal cardinal--n">N</b>
+              <b class="cardinal cardinal--e">E</b>
+              <b class="cardinal cardinal--s">S</b>
+              <b class="cardinal cardinal--w">W</b>
+            </div>
+          </div>
+          <span class="compass-clock" id="compassClock">13:00</span>
+        </div>
 
         <button class="reset-view" id="resetView" type="button" aria-label="Вернуть исходный ракурс">↺</button>
         <p class="drag-hint" id="dragHint">Зажмите и потяните, чтобы повернуть планировку</p>
@@ -58,14 +77,14 @@
           <div class="time-readout">
             <span class="sun-icon" aria-hidden="true">☀</span>
             <div>
-              <strong id="timeValue">15:00</strong>
+              <strong id="timeValue">13:00</strong>
               <small id="seasonValue">Летнее солнце</small>
             </div>
           </div>
 
           <div class="range-column">
-            <div class="range-labels"><span>12:00</span><span id="sunStatus">юго-запад · высота 42°</span><span>00:00</span></div>
-            <input id="timeRange" type="range" min="720" max="1440" step="5" value="900" autocomplete="off" aria-label="Время от 12:00 до 00:00" />
+            <div class="range-labels"><span>12:00</span><span id="sunStatus">юг · высота 54°</span><span>00:00</span></div>
+            <input id="timeRange" type="range" min="720" max="1440" step="5" value="780" autocomplete="off" aria-label="Время от 12:00 до 00:00" />
           </div>
         </div>
       </div>
@@ -73,7 +92,7 @@
 
     <aside class="details-panel">
       <p class="apartment-type">1-комнатная квартира №2</p>
-      <div class="area-value">73.2 <span>м²</span></div>
+      <div class="area-value"><img class="area-glyphs" src="assets/area-guild.svg" alt="73.2 м²" /></div>
       <button class="favorite-button" type="button">В избранное <i></i></button>
 
       <dl class="specs">
@@ -84,7 +103,7 @@
       </dl>
 
       <div class="price-block">
-        <div class="price">153 861 000<span>₽</span></div>
+        <div class="price"><img class="price-glyphs" src="assets/price-guild.svg" alt="153 861 000 ₽" /></div>
         <div class="price-per-meter">2 101 928 ₽<small>цена за 1 м²</small></div>
       </div>
 
