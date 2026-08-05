@@ -1,15 +1,34 @@
+const gallery = document.getElementById('gallery');
+const galleryViewport = document.getElementById('galleryViewport');
+const planImage = document.getElementById('planImage');
 const canvas = document.getElementById('sunCanvas');
 const ctx = canvas.getContext('2d');
-const stage = document.querySelector('.viewer-stage');
-const controls = document.getElementById('sunControls');
+const fullscreenButton = document.getElementById('fullscreenButton');
+const favoriteButton = document.getElementById('favoriteButton');
+const shareButton = document.getElementById('shareButton');
 const dateInput = document.getElementById('dateInput');
 const timeRange = document.getElementById('timeRange');
 const timeValue = document.getElementById('timeValue');
 const playButton = document.getElementById('playButton');
 const sunStatus = document.getElementById('sunStatus');
 const sunAngles = document.getElementById('sunAngles');
-const tabs = [...document.querySelectorAll('.tab[data-view]')];
+const viewTabs = [...document.querySelectorAll('.view-tab[data-view]')];
 const seasonButtons = [...document.querySelectorAll('.season-buttons button')];
+
+const sources = {
+  furnished: {
+    remote: 'https://imgs.etalongroup.ru/imgs/18500000000002189/42500000000303291/44000000002941969.png',
+    alt: 'Планировка квартиры №2 с мебелью'
+  },
+  empty: {
+    remote: 'https://imgs.etalongroup.ru/imgs/18500000000002189/42500000000303291/44000000002941839.png',
+    alt: 'Планировка квартиры №2 без мебели'
+  },
+  floor: {
+    remote: 'https://imgs.etalongroup.ru/imgs/18500000000002189/42500000000303291/44500000003012857.gif',
+    alt: 'Расположение квартиры №2 на этаже'
+  }
+};
 
 const siteLocation = {
   latitude: 55.7047,
@@ -18,14 +37,16 @@ const siteLocation = {
   northOnPlan: 315
 };
 
-const plan = new Image();
-plan.src = 'https://imgs.etalongroup.ru/imgs/18500000000002189/42500000000303291/44000000002941969.png';
-
 const state = {
+  mode: 'furnished',
   playing: false,
-  timer: null,
-  mode: 'sun'
+  timer: null
 };
+
+const sunPlan = new Image();
+sunPlan.decoding = 'async';
+sunPlan.src = sources.furnished.remote;
+sunPlan.onload = renderSun;
 
 const floorPolygon = [
   [12, 30], [735, 30], [770, 52], [790, 100], [790, 410],
@@ -133,20 +154,20 @@ function planSunDirection(azimuth) {
 }
 
 function getProjection(width, height) {
-  const usableW = Math.max(320, width - 100);
-  const usableH = Math.max(260, height - 100);
-  const scale = Math.min(usableW / 800, usableH / 350);
+  const usableW = Math.max(440, width - 260);
+  const usableH = Math.max(300, height - 215);
+  const scale = Math.min(usableW / 800, usableH / 410);
   const a = scale;
-  const b = scale * 0.07;
-  const c = -scale * 0.18;
-  const d = scale * 0.58;
+  const b = scale * 0.055;
+  const c = -scale * 0.15;
+  const d = scale * 0.68;
   const centerX = a * 400 + c * 241;
   const centerY = b * 400 + d * 241;
   return {
     a, b, c, d,
     e: width / 2 - centerX,
-    f: height / 2 - centerY + 26,
-    wallHeight: clamp(40 * scale, 28, 56)
+    f: height / 2 - centerY - 32,
+    wallHeight: clamp(42 * scale, 38, 74)
   };
 }
 
@@ -167,10 +188,10 @@ function drawPolygon(points) {
 function drawGroundShadow(projection) {
   const projected = floorPolygon.map((point) => project(point, projection));
   ctx.save();
-  ctx.filter = 'blur(18px)';
-  ctx.fillStyle = 'rgba(30, 22, 42, .18)';
+  ctx.filter = 'blur(24px)';
+  ctx.fillStyle = 'rgba(29, 21, 42, .17)';
   ctx.beginPath();
-  projected.forEach((p, i) => i ? ctx.lineTo(p.x + 8, p.y + 30) : ctx.moveTo(p.x + 8, p.y + 30));
+  projected.forEach((p, i) => i ? ctx.lineTo(p.x + 12, p.y + 32) : ctx.moveTo(p.x + 12, p.y + 32));
   ctx.closePath();
   ctx.fill();
   ctx.restore();
@@ -181,11 +202,19 @@ function clipFloor() {
   ctx.clip();
 }
 
+function drawPlanImage() {
+  if (sunPlan.naturalWidth >= 900) {
+    ctx.drawImage(sunPlan, 90, 250, 820, 500, 0, 0, 800, 482.7);
+  } else {
+    ctx.drawImage(sunPlan, 0, 0, sunPlan.naturalWidth, sunPlan.naturalHeight, 0, 0, 800, 482.7);
+  }
+}
+
 function drawLightBeams(sun, sunDir) {
   const altitude = Math.max(2, sun.altitude);
   const ray = [-sunDir[0], -sunDir[1]];
   const length = clamp(95 + 155 / Math.tan(degToRad(altitude)), 100, 430);
-  const intensity = clamp((sun.altitude + 2) / 42, 0.12, 0.62);
+  const intensity = clamp((sun.altitude + 2) / 42, 0.12, 0.65);
 
   windows.forEach((window) => {
     const exposure = window.normal[0] * sunDir[0] + window.normal[1] * sunDir[1];
@@ -202,8 +231,8 @@ function drawLightBeams(sun, sunDir) {
     const midX = (window.a[0] + window.b[0]) / 2;
     const midY = (window.a[1] + window.b[1]) / 2;
     const gradient = ctx.createLinearGradient(midX, midY, midX + shift[0], midY + shift[1]);
-    gradient.addColorStop(0, `rgba(255, 223, 150, ${intensity * exposure})`);
-    gradient.addColorStop(.45, `rgba(255, 218, 130, ${intensity * exposure * .52})`);
+    gradient.addColorStop(0, `rgba(255, 220, 137, ${intensity * exposure})`);
+    gradient.addColorStop(.45, `rgba(255, 214, 120, ${intensity * exposure * .5})`);
     gradient.addColorStop(1, 'rgba(255, 232, 180, 0)');
     drawPolygon(polygon);
     ctx.fillStyle = gradient;
@@ -215,7 +244,7 @@ function drawFloorShadows(sun, sunDir) {
   if (sun.altitude <= 0) return;
   const shadowDirection = [-sunDir[0], -sunDir[1]];
   const length = clamp(58 / Math.tan(degToRad(Math.max(4, sun.altitude))), 9, 115);
-  ctx.fillStyle = `rgba(40, 30, 52, ${clamp(.34 - sun.altitude / 240, .12, .3)})`;
+  ctx.fillStyle = `rgba(39, 26, 55, ${clamp(.32 - sun.altitude / 250, .11, .27)})`;
 
   wallSegments.forEach(([a, b]) => {
     const offset = [shadowDirection[0] * length, shadowDirection[1] * length];
@@ -246,9 +275,9 @@ function drawWallFaces(projection, sunDir, sun) {
     const length = Math.hypot(dx, dy) || 1;
     const normal = [-dy / length, dx / length];
     const facing = normal[0] * sunDir[0] + normal[1] * sunDir[1];
-    const brightness = sun.altitude > 0 ? clamp(.56 + facing * .18, .36, .72) : .34;
-    const base = [39, 23, 69];
-    const rgb = base.map((value) => Math.round(value + (255 - value) * (brightness - .36) * .26));
+    const brightness = sun.altitude > 0 ? clamp(.6 + facing * .17, .42, .78) : .36;
+    const base = [42, 23, 76];
+    const rgb = base.map((value) => Math.round(value + (255 - value) * (brightness - .39) * .22));
 
     ctx.beginPath();
     ctx.moveTo(p1.x, p1.y);
@@ -262,45 +291,50 @@ function drawWallFaces(projection, sunDir, sun) {
     ctx.beginPath();
     ctx.moveTo(p1Top.x, p1Top.y);
     ctx.lineTo(p2Top.x, p2Top.y);
-    ctx.strokeStyle = 'rgba(255,255,255,.28)';
+    ctx.strokeStyle = 'rgba(255,255,255,.26)';
     ctx.lineWidth = 1;
     ctx.stroke();
   });
 }
 
 function drawSunMarker(width, sun) {
-  const x = width - 110;
-  const baseY = 95;
-  const normalizedAltitude = clamp(sun.altitude / 60, 0, 1);
-  const y = baseY - normalizedAltitude * 46;
+  const progress = clamp((Number(timeRange.value) - 360) / 960, 0, 1);
+  const x = width * (.15 + progress * .7);
+  const y = 58 + (1 - clamp(sun.altitude / 60, 0, 1)) * 52;
   ctx.save();
-  ctx.shadowColor = 'rgba(247, 194, 82, .8)';
-  ctx.shadowBlur = 24;
-  ctx.fillStyle = sun.altitude > 0 ? '#f5c969' : '#aaa4af';
+  ctx.shadowColor = 'rgba(239, 180, 78, .8)';
+  ctx.shadowBlur = 26;
+  ctx.fillStyle = sun.altitude > 0 ? '#efb44e' : '#aaa';
   ctx.beginPath();
   ctx.arc(x, y, 7, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
 
-function render() {
+function renderSun() {
+  if (state.mode !== 'sun') return;
   const rect = canvas.getBoundingClientRect();
+  const width = Math.max(1, rect.width);
+  const height = Math.max(1, rect.height);
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width = Math.max(1, Math.round(rect.width * dpr));
-  canvas.height = Math.max(1, Math.round(rect.height * dpr));
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  const width = rect.width;
-  const height = rect.height;
+  canvas.width = Math.round(width * dpr);
+  canvas.height = Math.round(height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, width, height);
 
-  if (!plan.complete) return;
+  if (!sunPlan.complete || !sunPlan.naturalWidth) return;
 
-  const date = currentDate();
   const minutes = Number(timeRange.value);
-  const sun = solarPosition(date, minutes);
+  const sun = solarPosition(currentDate(), minutes);
   const sunDir = planSunDirection(sun.azimuth);
   const projection = getProjection(width, height);
+
+  const background = ctx.createLinearGradient(0, 0, 0, height);
+  background.addColorStop(0, '#ffffff');
+  background.addColorStop(1, '#f7f6f4');
+  ctx.fillStyle = background;
+  ctx.fillRect(0, 0, width, height);
 
   drawGroundShadow(projection);
 
@@ -313,14 +347,13 @@ function render() {
     dpr * projection.e,
     dpr * projection.f
   );
-
-  ctx.drawImage(plan, 90, 250, 820, 500, 0, 0, 800, 482.7);
+  drawPlanImage();
 
   ctx.save();
   clipFloor();
-  const nightAlpha = clamp((8 - sun.altitude) / 22, 0, .56);
+  const nightAlpha = clamp((8 - sun.altitude) / 22, 0, .58);
   if (nightAlpha > 0) {
-    ctx.fillStyle = `rgba(42, 45, 67, ${nightAlpha})`;
+    ctx.fillStyle = `rgba(48, 48, 67, ${nightAlpha})`;
     ctx.fillRect(-100, -100, 1000, 800);
   }
   drawLightBeams(sun, sunDir);
@@ -342,53 +375,95 @@ function render() {
   timeValue.textContent = formatTime(minutes);
 }
 
-function setDate(value) {
-  dateInput.value = value;
-  seasonButtons.forEach((button) => button.classList.toggle('is-active', button.dataset.date === value));
-  render();
+function setImageSource(view) {
+  const source = sources[view];
+  if (!source) return;
+  planImage.alt = source.alt;
+  planImage.src = source.remote;
 }
 
 function stopPlayback() {
   state.playing = false;
   playButton.classList.remove('is-playing');
-  if (state.timer) clearTimeout(state.timer);
+  if (state.timer) window.clearInterval(state.timer);
   state.timer = null;
 }
 
-function playbackFrame() {
-  if (!state.playing) return;
-  let value = Number(timeRange.value) + 5;
-  if (value > Number(timeRange.max)) value = Number(timeRange.min);
-  timeRange.value = String(value);
-  render();
-  state.timer = setTimeout(() => requestAnimationFrame(playbackFrame), 42);
+function setMode(mode) {
+  if (!['furnished', 'empty', 'floor', 'sun'].includes(mode)) return;
+  state.mode = mode;
+  gallery.dataset.mode = mode;
+  viewTabs.forEach((button) => button.classList.toggle('is-active', button.dataset.view === mode));
+
+  if (mode === 'sun') {
+    requestAnimationFrame(renderSun);
+  } else {
+    stopPlayback();
+    setImageSource(mode);
+  }
 }
 
-playButton.addEventListener('click', () => {
-  state.playing = !state.playing;
-  playButton.classList.toggle('is-playing', state.playing);
-  if (state.playing) playbackFrame();
-  else stopPlayback();
-});
+function setDate(value) {
+  dateInput.value = value;
+  seasonButtons.forEach((button) => button.classList.toggle('is-active', button.dataset.date === value));
+  renderSun();
+}
 
-timeRange.addEventListener('input', render);
-dateInput.addEventListener('change', () => setDate(dateInput.value));
+viewTabs.forEach((button) => button.addEventListener('click', () => setMode(button.dataset.view)));
 seasonButtons.forEach((button) => button.addEventListener('click', () => setDate(button.dataset.date)));
+dateInput.addEventListener('input', () => {
+  seasonButtons.forEach((button) => button.classList.toggle('is-active', button.dataset.date === dateInput.value));
+  renderSun();
+});
+timeRange.addEventListener('input', renderSun);
 
-tabs.forEach((tab) => {
-  tab.addEventListener('click', () => {
-    const mode = tab.dataset.view;
-    state.mode = mode;
-    tabs.forEach((item) => item.classList.toggle('is-active', item === tab));
-    stage.dataset.mode = mode;
-    controls.hidden = mode !== 'sun';
-    if (mode !== 'sun') stopPlayback();
-    else render();
-  });
+playButton.addEventListener('click', () => {
+  if (state.playing) {
+    stopPlayback();
+    return;
+  }
+  state.playing = true;
+  playButton.classList.add('is-playing');
+  state.timer = window.setInterval(() => {
+    let next = Number(timeRange.value) + 10;
+    if (next > Number(timeRange.max)) next = Number(timeRange.min);
+    timeRange.value = String(next);
+    renderSun();
+  }, 90);
 });
 
-const resizeObserver = new ResizeObserver(render);
-resizeObserver.observe(stage);
-plan.addEventListener('load', render);
-window.addEventListener('resize', render);
-render();
+fullscreenButton.addEventListener('click', async () => {
+  try {
+    if (!document.fullscreenElement) await galleryViewport.requestFullscreen();
+    else await document.exitFullscreen();
+  } catch (error) {
+    console.warn('Fullscreen is unavailable', error);
+  }
+});
+
+favoriteButton.addEventListener('click', () => {
+  const next = favoriteButton.getAttribute('aria-pressed') !== 'true';
+  favoriteButton.setAttribute('aria-pressed', String(next));
+  favoriteButton.querySelector('span').textContent = next ? 'В избранном' : 'В избранное';
+});
+
+shareButton.addEventListener('click', async () => {
+  const data = { title: document.title, text: 'Квартира №2 в Резиденции Омега', url: window.location.href };
+  try {
+    if (navigator.share) await navigator.share(data);
+    else {
+      await navigator.clipboard.writeText(window.location.href);
+      const label = shareButton.lastChild;
+      const original = label.textContent;
+      label.textContent = 'Ссылка скопирована';
+      window.setTimeout(() => { label.textContent = original; }, 1600);
+    }
+  } catch (error) {
+    if (error?.name !== 'AbortError') console.warn('Share failed', error);
+  }
+});
+
+window.addEventListener('resize', () => requestAnimationFrame(renderSun));
+document.addEventListener('fullscreenchange', () => requestAnimationFrame(renderSun));
+
+setMode('furnished');
