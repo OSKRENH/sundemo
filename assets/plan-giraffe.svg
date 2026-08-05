@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 483" role="img" aria-labelledby="title desc">
+  <title id="title">Планировка квартиры №2</title>
+  <desc id="desc">Чистая двухмерная планировка без мебели</desc>
+  <defs>
+    <style>
+      .floor{fill:#fafaf8}.room{fill:#f5f5f2}.wall{fill:none;stroke:#171717;stroke-width:15;stroke-linecap:square;stroke-linejoin:miter}.part{fill:none;stroke:#171717;stroke-width:8;stroke-linecap:square;stroke-linejoin:miter}.window-gap{fill:none;stroke:#fff;stroke-width:18}.window{fill:none;stroke:#8fc7dc;stroke-width:3}.door{fill:none;stroke:#aaa8a4;stroke-width:1.4;stroke-dasharray:5 5}.door-leaf{fill:none;stroke:#8d8b87;stroke-width:1.7}.label{font-family:'TT Hoves Pro Trial','TT Hoves',Arial,sans-serif;fill:#393936;text-anchor:middle;font-size:15px}.area{font-family:'TT Hoves Pro Trial','TT Hoves',Arial,sans-serif;fill:#8a8a85;text-anchor:middle;font-size:11px}.outline{fill:none;stroke:#d8d8d4;stroke-width:1}
+    </style>
+  </defs>
+  <path class="floor" d="M12 30H735L770 52L790 100V410H340V470L275 410H12Z"/>
+  <path class="room" d="M20 38H250V238H20ZM20 252H176V402H20ZM184 252H330V402H184ZM258 38H782V238H258ZM338 252H502V402H338ZM518 252H782V402H518Z"/>
+  <path class="wall" d="M12 30H735L770 52L790 100V410H340V470L275 410H12Z"/>
+  <path class="window-gap" d="M42 30H226M288 30H474M536 30H720M735 31L768 55M768 55L790 100M790 208V386"/>
+  <path class="window" d="M42 30H226M288 30H474M536 30H720M735 31L768 55M768 55L790 100M790 208V386"/>
+  <path class="part" d="M250 30V218M250 248V410M12 244H176V410M338 244H510M382 244V410M510 244V410M338 410V282M275 410V302"/>
+  <path class="window-gap" d="M250 218H307M250 248H307M176 244V298M338 244V298M338 410H405M275 410H220"/>
+  <path class="door" d="M250 218A57 57 0 0 1 307 275M250 248A57 57 0 0 0 307 191M176 244A54 54 0 0 1 230 298M338 244A54 54 0 0 1 392 298M338 410A67 67 0 0 1 405 477M275 410A55 55 0 0 0 220 465"/>
+  <path class="door-leaf" d="M307 275V218M307 191V248M230 298H176M392 298H338M405 477V410M220 465V410"/>
+  <text class="label" x="130" y="122">Спальня</text><text class="area" x="130" y="142">13,5 м²</text>
+  <text class="label" x="96" y="324">Санузел</text><text class="area" x="96" y="344">7,7 м²</text>
+  <text class="label" x="226" y="324">Гардероб</text><text class="area" x="226" y="344">4,0 м²</text>
+  <text class="label" x="515" y="125">Кухня-гостиная</text><text class="area" x="515" y="145">36,8 м²</text>
+  <text class="label" x="424" y="324">Холл</text><text class="area" x="424" y="344">5,2 м²</text>
+  <text class="label" x="646" y="324">Санузел</text><text class="area" x="646" y="344">6,0 м²</text>
+  <path class="outline" d="M31 19H746L781 44L801 95V421H351V482L269 421H1V19Z"/>
+</svg>
