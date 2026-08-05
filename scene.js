@@ -8,36 +8,29 @@
     let season = 'summer';
     let minutes = 780;
 
-    const metrics = () => {
+    function metrics() {
       const rect = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(devicePixelRatio || 1, 2);
       canvas.width = Math.max(1, Math.round(rect.width * dpr));
       canvas.height = Math.max(1, Math.round(rect.height * dpr));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       return { width: rect.width, height: rect.height };
-    };
+    }
 
     function projected(points, zs, m) {
       return points.map((point, index) => G.project(point, zs[index], m, camera));
     }
 
-    function path(points) {
-      ctx.beginPath();
-      points.forEach((point, index) => {
-        if (index === 0) ctx.moveTo(point.x, point.y);
-        else ctx.lineTo(point.x, point.y);
-      });
-      ctx.closePath();
-    }
-
     function polygon(points, zs, m, fill, stroke = null, blur = null) {
-      const screenPoints = projected(points, zs, m);
+      const screen = projected(points, zs, m);
       ctx.save();
       if (blur) {
         ctx.shadowBlur = blur.radius;
         ctx.shadowColor = blur.color;
       }
-      path(screenPoints);
+      ctx.beginPath();
+      screen.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
+      ctx.closePath();
       if (fill) {
         ctx.fillStyle = fill;
         ctx.fill();
@@ -50,97 +43,151 @@
       ctx.restore();
     }
 
-    function clipToFloor(m, callback) {
-      const floor = G.OUTER.map(point => G.project(point, 0, m, camera));
-      ctx.save();
-      path(floor);
+    function clipApartment(m) {
+      const floor = G.OUTER.map(point => G.project(point, 1, m, camera));
+      ctx.beginPath();
+      floor.forEach((point, index) => index ? ctx.lineTo(point.x, point.y) : ctx.moveTo(point.x, point.y));
+      ctx.closePath();
       ctx.clip();
-      callback();
+    }
+
+    function glass(m) {
+      G.WINDOWS.forEach(window => {
+        polygon(
+          [window.a, window.b, window.b, window.a],
+          [18, 18, 94, 94],
+          m,
+          'rgba(127,205,235,.075)',
+          'rgba(58,164,211,.56)'
+        );
+      });
+    }
+
+    function wallShadows(sun, m) {
+      if (sun.altitude <= 1) return;
+
+      const incoming = G.mul(M.planDirection(sun.azimuth), -1);
+      const altitude = M.clamp(sun.altitude, 5, 75);
+      const shadowLength = M.clamp((G.HEIGHT / Math.tan(M.degToRad(altitude))) * 0.7, 16, 118);
+
+      const candidates = G.WALLS
+        .filter(wall => !wall.outer)
+        .map(wall => {
+          const tangent = G.norm([wall.b[0] - wall.a[0], wall.b[1] - wall.a[1]]);
+          const normal = G.perp(tangent);
+          const length = Math.hypot(wall.b[0] - wall.a[0], wall.b[1] - wall.a[1]);
+          const facing = Math.abs(normal[0] * incoming[0] + normal[1] * incoming[1]);
+          return { wall, length, facing, score: length * facing };
+        })
+        .filter(item => item.length > 74 && item.facing > 0.42)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 4);
+
+      ctx.save();
+      clipApartment(m);
+      candidates.forEach(({ wall, facing }, index) => {
+        const shift = G.mul(incoming, shadowLength * (0.86 + index * 0.035));
+        polygon(
+          [wall.a, wall.b, G.add(wall.b, shift), G.add(wall.a, shift)],
+          [1, 1, 1, 1],
+          m,
+          `rgba(35,35,35,${0.024 + facing * 0.025})`,
+          null,
+          { radius: 2.5, color: 'rgba(25,25,25,.08)' }
+        );
+      });
       ctx.restore();
     }
 
-    function drawGlass(m) {
-      G.WINDOWS.forEach(windowSegment => {
-        polygon(
-          [windowSegment.a, windowSegment.b, windowSegment.b, windowSegment.a],
-          [18, 18, 94, 94],
-          m,
-          'rgba(127,205,235,.08)',
-          'rgba(58,164,211,.58)'
-        );
-      });
+    function drawBeamBand(window, incoming, distance, exposure, offset, widthFactor, m) {
+      const tangent = G.norm(window.tangent);
+      const windowLength = Math.hypot(window.b[0] - window.a[0], window.b[1] - window.a[1]);
+      const origin = G.add(G.mid(window.a, window.b), G.mul(tangent, windowLength * offset));
+      const start = G.add(origin, G.mul(window.inward, 8));
+      const end = G.add(start, G.mul(incoming, distance * (1 - Math.abs(offset) * 0.08)));
+      const startHalf = M.clamp(windowLength * widthFactor, 11, 27);
+      const endHalf = startHalf * 0.48;
+      const beam = [
+        G.add(start, G.mul(tangent, -startHalf)),
+        G.add(start, G.mul(tangent, startHalf)),
+        G.add(end, G.mul(tangent, endHalf)),
+        G.add(end, G.mul(tangent, -endHalf))
+      ];
+      const alpha = (0.045 + exposure * 0.052) * (1 - Math.abs(offset) * 0.25);
+
+      polygon(
+        beam,
+        [78, 78, 3, 3],
+        m,
+        `rgba(250,220,150,${alpha})`,
+        null,
+        { radius: 10, color: 'rgba(241,187,76,.24)' }
+      );
     }
 
-    function drawSunRays(sun, m) {
+    function sunRays(sun, m) {
       if (sun.altitude <= 0) return 0;
 
       const incoming = G.mul(M.planDirection(sun.azimuth), -1);
-      const altitude = M.clamp(sun.altitude, 4, 78);
-      const rayLength = M.clamp(92 + 280 / Math.tan(M.degToRad(altitude)), 125, 370);
+      const altitude = M.clamp(sun.altitude, 5, 75);
+      const distance = M.clamp(118 + 250 / Math.tan(M.degToRad(altitude)), 145, 330);
+      const offsets = [-0.36, -0.18, 0, 0.18, 0.36];
       let litWindows = 0;
 
-      G.WINDOWS.forEach(windowSegment => {
-        const exposure = incoming[0] * windowSegment.inward[0] + incoming[1] * windowSegment.inward[1];
-        if (exposure <= 0.04) return;
+      ctx.save();
+      clipApartment(m);
 
+      G.WINDOWS.forEach(window => {
+        const exposure = incoming[0] * window.inward[0] + incoming[1] * window.inward[1];
+        if (exposure <= 0.015) return;
         litWindows += 1;
-        const startA = G.add(windowSegment.a, G.mul(windowSegment.inward, 10));
-        const startB = G.add(windowSegment.b, G.mul(windowSegment.inward, 10));
-        const endA = G.add(startA, G.mul(incoming, rayLength));
-        const endB = G.add(startB, G.mul(incoming, rayLength));
-        const worldRay = [startA, startB, endB, endA];
-        const screenRay = projected(worldRay, [3, 3, 3, 3], m);
-        const start = G.project(G.mid(startA, startB), 3, m, camera);
-        const end = G.project(G.mid(endA, endB), 3, m, camera);
-        const gradient = ctx.createLinearGradient(start.x, start.y, end.x, end.y);
-        const alpha = M.clamp(0.16 + exposure * 0.18, 0.18, 0.34);
-        gradient.addColorStop(0, `rgba(255,231,176,${alpha})`);
-        gradient.addColorStop(0.55, `rgba(250,218,145,${alpha * 0.62})`);
-        gradient.addColorStop(1, 'rgba(250,218,145,0)');
 
-        ctx.save();
-        path(screenRay);
-        ctx.fillStyle = gradient;
-        ctx.fill();
-        ctx.strokeStyle = `rgba(255,236,194,${0.12 + exposure * 0.12})`;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        ctx.restore();
+        const tangent = G.norm(window.tangent);
+        const windowLength = Math.hypot(window.b[0] - window.a[0], window.b[1] - window.a[1]);
+        const origin = G.add(G.mid(window.a, window.b), G.mul(window.inward, 7));
+        const broadEnd = G.add(origin, G.mul(incoming, distance * 0.94));
+        const broadHalf = M.clamp(windowLength * 0.46, 28, 78);
+        polygon(
+          [
+            G.add(origin, G.mul(tangent, -broadHalf)),
+            G.add(origin, G.mul(tangent, broadHalf)),
+            G.add(broadEnd, G.mul(tangent, broadHalf * 0.34)),
+            G.add(broadEnd, G.mul(tangent, -broadHalf * 0.34))
+          ],
+          [82, 82, 2, 2],
+          m,
+          `rgba(250,222,156,${0.024 + exposure * 0.032})`,
+          null,
+          { radius: 15, color: 'rgba(241,187,76,.18)' }
+        );
+
+        offsets.forEach(offset => drawBeamBand(window, incoming, distance, exposure, offset, 0.15, m));
       });
 
+      ctx.restore();
       return litWindows;
     }
 
-    function drawWallShadows(sun, m) {
-      if (sun.altitude <= 0) return;
+    function drawBackground(sun, m) {
+      const daylight = M.clamp((sun.altitude + 12) / 75, 0.22, 1);
+      const gradient = ctx.createLinearGradient(0, 0, 0, m.height);
+      gradient.addColorStop(0, `rgba(255,255,255,${0.85 + daylight * 0.15})`);
+      const shade = 220 - Math.round((1 - daylight) * 14);
+      gradient.addColorStop(1, `rgb(${shade},${shade},${shade - 2})`);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, m.width, m.height);
+    }
 
-      const incoming = G.mul(M.planDirection(sun.azimuth), -1);
-      const altitude = M.clamp(sun.altitude, 4, 78);
-      const shadowLength = M.clamp(G.HEIGHT / Math.tan(M.degToRad(altitude)), 24, 240);
-      const shadowOffset = G.mul(incoming, shadowLength);
-
-      G.WALLS.forEach(wall => {
-        const tangent = G.norm([wall.b[0] - wall.a[0], wall.b[1] - wall.a[1]]);
-        const widthFactor = Math.abs(tangent[0] * incoming[1] - tangent[1] * incoming[0]);
-        if (widthFactor < 0.06) return;
-
-        const shadow = [
-          wall.a,
-          wall.b,
-          G.add(wall.b, shadowOffset),
-          G.add(wall.a, shadowOffset)
-        ];
-        const alpha = (wall.outer ? 0.11 : 0.085) + widthFactor * (wall.outer ? 0.13 : 0.11);
-
-        polygon(
-          shadow,
-          [1, 1, 1, 1],
-          m,
-          `rgba(35,35,39,${alpha})`,
-          null,
-          { radius: 5, color: 'rgba(30,30,34,.18)' }
-        );
-      });
+    function drawGroundShadow(m) {
+      const shadow = G.OUTER.map(point => G.project(point, 0, m, camera));
+      ctx.save();
+      ctx.filter = 'blur(20px)';
+      ctx.fillStyle = 'rgba(0,0,0,.075)';
+      ctx.beginPath();
+      shadow.forEach((point, index) => index ? ctx.lineTo(point.x + 14, point.y + 17) : ctx.moveTo(point.x + 14, point.y + 17));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
     }
 
     function render() {
@@ -148,49 +195,34 @@
       ctx.clearRect(0, 0, m.width, m.height);
 
       const sun = M.solarPosition(M.dateForSeason(season), minutes);
-      const daylight = M.clamp((sun.altitude + 12) / 75, 0.2, 1);
-      const background = ctx.createLinearGradient(0, 0, 0, m.height);
-      background.addColorStop(0, `rgba(255,255,255,${0.82 + daylight * 0.18})`);
-      const shade = 218 - Math.round((1 - daylight) * 18);
-      background.addColorStop(1, `rgb(${shade},${shade},${shade - 2})`);
-      ctx.fillStyle = background;
-      ctx.fillRect(0, 0, m.width, m.height);
-
-      const outsideShadow = G.OUTER.map(point => G.project(point, 0, m, camera));
-      ctx.save();
-      ctx.filter = 'blur(22px)';
-      ctx.fillStyle = 'rgba(0,0,0,.10)';
-      path(outsideShadow.map(point => ({ x: point.x + 18, y: point.y + 20 })));
-      ctx.fill();
-      ctx.restore();
+      drawBackground(sun, m);
+      drawGroundShadow(m);
 
       polygon(
         G.OUTER,
         new Array(G.OUTER.length).fill(0),
         m,
-        'rgba(255,255,255,.27)',
-        'rgba(150,150,150,.22)'
+        'rgba(255,255,255,.28)',
+        'rgba(150,150,150,.2)'
       );
 
-      let litWindows = 0;
-      clipToFloor(m, () => {
-        litWindows = drawSunRays(sun, m);
-        drawWallShadows(sun, m);
-      });
+      wallShadows(sun, m);
 
       const wallFaces = [];
       G.WALLS.forEach(wall => wallFaces.push(...G.faces(wall, camera)));
-      wallFaces.sort((a, b) => a.depth - b.depth);
-      wallFaces.forEach(face => polygon(face.points, face.zs, m, face.fill, face.stroke));
+      wallFaces
+        .sort((a, b) => a.depth - b.depth)
+        .forEach(face => polygon(face.points, face.zs, m, face.fill, face.stroke));
 
-      drawGlass(m);
+      glass(m);
+      const litWindows = sunRays(sun, m);
 
       polygon(
         G.OUTER,
         new Array(G.OUTER.length).fill(G.HEIGHT),
         m,
-        'rgba(255,255,255,.035)',
-        'rgba(210,210,210,.08)'
+        'rgba(255,255,255,.018)',
+        'rgba(210,210,210,.07)'
       );
 
       return { sun, litWindows };
@@ -201,10 +233,7 @@
       render,
       setSeason: value => { season = value; },
       setMinutes: value => { minutes = value; },
-      reset: () => {
-        camera.yaw = -0.62;
-        camera.pitch = 0.86;
-      },
+      reset: () => { camera.yaw = -0.62; camera.pitch = 0.86; },
       getSun: () => M.solarPosition(M.dateForSeason(season), minutes)
     };
   }
