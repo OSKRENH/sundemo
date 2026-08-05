@@ -1,0 +1,20 @@
+(() => {
+  const M=window.SunMath,G=window.ApartmentGeometry;
+  function create(canvas){
+    const ctx=canvas.getContext('2d');
+    const camera={yaw:-.62,pitch:-.86};
+    let season='summer',minutes=900;
+    const metrics=()=>{const r=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(1,Math.round(r.width*dpr));canvas.height=Math.max(1,Math.round(r.height*dpr));ctx.setTransform(dpr,0,0,dpr,0,0);return{width:r.width,height:r.height}};
+    function polygon(points,zs,m,fill,stroke=null,blur=null){const projected=points.map((p,i)=>G.project(p,zs[i],m,camera));ctx.save();if(blur){ctx.shadowBlur=blur.radius;ctx.shadowColor=blur.color}ctx.beginPath();projected.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();if(fill){ctx.fillStyle=fill;ctx.fill()}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke()}ctx.restore()}
+    function glass(m){G.WINDOWS.forEach(w=>polygon([w.a,w.b,w.b,w.a],[18,18,94,94],m,'rgba(127,205,235,.08)','rgba(58,164,211,.55)'))}
+    function sunlight(sun,m){if(sun.altitude<=0)return;const incoming=G.mul(M.planDirection(sun.azimuth),-1),altitude=M.clamp(sun.altitude,5,75),distance=M.clamp(40+205/Math.tan(M.degToRad(altitude)),54,220),intensity=M.clamp(.18+altitude/230,.18,.38);
+      G.WINDOWS.forEach(w=>{const exposure=incoming[0]*w.inward[0]+incoming[1]*w.inward[1];if(exposure<=.12)return;const origin=G.mid(w.a,w.b),center=G.add(G.add(origin,G.mul(w.inward,26)),G.mul(incoming,distance*.58));if(G.inside(center,G.OUTER)){const spot=G.ellipse(center,incoming,G.perp(incoming),M.clamp(108-altitude*.75,42,92),M.clamp(29+altitude*.18,27,46));polygon(spot,new Array(spot.length).fill(2),m,`rgba(246,211,135,${intensity*exposure})`,null,{radius:19,color:'rgba(230,177,74,.34)'})}});
+      G.WALLS.filter(w=>!w.outer).map(w=>{const tangent=G.norm([w.b[0]-w.a[0],w.b[1]-w.a[1]]),normal=G.perp(tangent),exposure=Math.abs(normal[0]*incoming[0]+normal[1]*incoming[1]);return{w,tangent,exposure}}).sort((a,b)=>b.exposure-a.exposure).slice(0,2).forEach(({w,tangent,exposure},index)=>{if(exposure<.35)return;const center=G.mid(w.a,w.b),slide=M.clamp((incoming[0]*tangent[0]+incoming[1]*tangent[1])*52,-48,48),p=G.add(center,G.mul(tangent,slide)),half=27-index*4,a=G.add(p,G.mul(tangent,-half)),b=G.add(p,G.mul(tangent,half)),z=M.clamp(44+altitude*.38,54,86);polygon([a,b,b,a],[z-24,z-24,z+24,z+24],m,`rgba(248,220,156,${.16+exposure*.12})`,null,{radius:14,color:'rgba(230,177,74,.38)'})});
+    }
+    function render(){const m=metrics();ctx.clearRect(0,0,m.width,m.height);const sun=M.solarPosition(M.dateForSeason(season),minutes),daylight=M.clamp((sun.altitude+12)/75,.2,1),bg=ctx.createLinearGradient(0,0,0,m.height);bg.addColorStop(0,`rgba(255,255,255,${.82+daylight*.18})`);const shade=218-Math.round((1-daylight)*18);bg.addColorStop(1,`rgb(${shade},${shade},${shade-2})`);ctx.fillStyle=bg;ctx.fillRect(0,0,m.width,m.height);
+      const shadow=G.OUTER.map(p=>G.project(p,0,m,camera));ctx.save();ctx.filter='blur(22px)';ctx.fillStyle='rgba(0,0,0,.10)';ctx.beginPath();shadow.forEach((p,i)=>i?ctx.lineTo(p.x+18,p.y+20):ctx.moveTo(p.x+18,p.y+20));ctx.closePath();ctx.fill();ctx.restore();
+      const faces=[{points:G.OUTER,zs:new Array(G.OUTER.length).fill(0),fill:'rgba(255,255,255,.24)',stroke:'rgba(150,150,150,.22)',depth:G.OUTER.reduce((s,p)=>s+G.transform(p,0,camera).depth,0)/G.OUTER.length},{points:G.OUTER,zs:new Array(G.OUTER.length).fill(G.HEIGHT),fill:'rgba(255,255,255,.055)',stroke:'rgba(210,210,210,.12)',depth:G.OUTER.reduce((s,p)=>s+G.transform(p,G.HEIGHT,camera).depth,0)/G.OUTER.length}];G.WALLS.forEach(w=>faces.push(...G.faces(w,camera)));faces.sort((a,b)=>a.depth-b.depth).forEach(f=>polygon(f.points,f.zs,m,f.fill,f.stroke));glass(m);sunlight(sun,m);return sun}
+    return{camera,render,setSeason:v=>{season=v},setMinutes:v=>{minutes=v},reset:()=>{camera.yaw=-.62;camera.pitch=-.86},getSun:()=>M.solarPosition(M.dateForSeason(season),minutes)};
+  }
+  window.SunScene={create};
+})();
