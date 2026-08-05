@@ -3,122 +3,170 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#271745" />
-  <title>Солнечный свет — квартира №2</title>
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Демонстрационная карточка квартиры Aurix с интерактивным солнечным светом." />
+  <title>Квартира №2 — Резиденция Омега</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <div class="rotate-screen" aria-hidden="true">
+    <div class="rotate-phone"></div>
+    <strong>Пожалуйста, переверните устройство.</strong>
+    <span>Это необходимо для корректного отображения сайта.</span>
+  </div>
+
   <header class="site-header">
-    <a class="brand" href="#" aria-label="Aurix">AURIX</a>
-    <nav class="top-nav" aria-label="Основная навигация">
-      <a href="#viewer">Выбрать недвижимость</a>
-      <a href="#about">Проекты</a>
-      <a href="#about">Контакты</a>
+    <button class="project-menu header-control" type="button">
+      <span>Меню проекта</span>
+      <span class="small-chevron" aria-hidden="true"></span>
+    </button>
+
+    <nav class="breadcrumbs" aria-label="Навигационная цепочка">
+      <a href="#">Выбор</a><span>/</span>
+      <a href="#">Резиденция Омега</a><span>/</span>
+      <a href="#">Корпус 1</a><span>/</span>
+      <a href="#">Этаж 2</a><span>/</span>
+      <span>№2</span>
     </nav>
-    <button class="outline-button" type="button">Оставить запрос</button>
+
+    <a class="omega-logo" href="#" aria-label="Резиденция Омега">
+      <svg viewBox="0 0 140 58" role="img" aria-hidden="true">
+        <path d="M29 47c-14.5 0-24-9.5-24-22.5S14.5 2 29 2s24 9.5 24 22.5c0 9.4-5.2 17-13.8 20.5 5.3 1.8 10.6 2.4 15.8 1.7-7.8 4.2-18.5 4.7-26 .3Z" fill="none" stroke="currentColor" stroke-width="2.2"/>
+        <path d="M4 48.5c9.8 5.5 20.1 5.5 30.6 1" fill="none" stroke="currentColor" stroke-width="1"/>
+        <text x="70" y="18" font-size="5.5" letter-spacing=".8">резиденция</text>
+        <text x="65" y="35" font-size="15" letter-spacing="1">ОМЕГА</text>
+      </svg>
+    </a>
+
+    <div class="header-actions">
+      <a class="choose-property" href="#">Выбрать недвижимость</a>
+      <button class="bookmark header-icon" type="button" aria-label="Избранное">
+        <svg viewBox="0 0 28 34" aria-hidden="true"><path d="M4 2h20v29l-10-6-10 6V2Z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        <span class="bookmark-dot"></span>
+      </button>
+      <button class="hamburger header-icon" type="button" aria-label="Открыть меню">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </header>
 
-  <main>
-    <section class="hero" id="viewer">
-      <div class="breadcrumbs">Главная / Резиденция Омега / Квартира №2</div>
-      <div class="hero-heading">
-        <div>
-          <p class="eyebrow">Резиденция Омега</p>
-          <h1>1-комнатная квартира №2</h1>
+  <main class="apartment-page">
+    <section class="gallery" id="gallery" aria-label="Планировка квартиры">
+      <div class="gallery-viewport" id="galleryViewport">
+        <button class="gallery-arrow gallery-arrow-left" type="button" aria-label="Предыдущая квартира">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+
+        <div class="plan-media" id="planMedia">
+          <img
+            id="planImage"
+            class="plan-image"
+            src="https://imgs.etalongroup.ru/imgs/18500000000002189/42500000000303291/44000000002941969.png"
+            alt="Планировка квартиры №2 с мебелью"
+          />
+          <canvas id="sunCanvas" aria-label="Интерактивная схема солнечного света"></canvas>
         </div>
-        <div class="hero-meta">
-          <span>73,2 м²</span>
-          <span>2 этаж</span>
-          <span>1 комната</span>
+
+        <button class="fullscreen-button" id="fullscreenButton" type="button" aria-label="Развернуть планировку">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M5 12V5h7M20 5h7v7M27 20v7h-7M12 27H5v-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+
+        <div class="sun-readout" id="sunReadout" aria-live="polite">
+          <span class="sun-indicator"></span>
+          <div><strong id="sunStatus">Солнце над горизонтом</strong><span id="sunAngles">высота 38° · юго-запад</span></div>
         </div>
-      </div>
 
-      <div class="apartment-layout">
-        <aside class="apartment-card">
-          <div class="card-topline">
-            <span>Квартира №2</span>
-            <span class="status">в продаже</span>
-          </div>
-
-          <div class="price">153,9 млн ₽</div>
-          <div class="price-note">2 101 928 ₽ за м²</div>
-
-          <dl class="specs">
-            <div><dt>Корпус</dt><dd>1</dd></div>
-            <div><dt>Секция</dt><dd>1</dd></div>
-            <div><dt>Этаж</dt><dd>2 из 9</dd></div>
-            <div><dt>Высота потолка</dt><dd>3,22 м</dd></div>
-          </dl>
-
-          <button class="primary-button" type="button">Забронировать</button>
-          <button class="text-button" type="button">Скачать PDF</button>
-
-          <p class="demo-note">Демонстрационная визуализация. Окружающая застройка и выступающие элементы фасада пока не учитываются.</p>
-        </aside>
-
-        <section class="viewer-card" aria-label="Интерактивная планировка">
-          <div class="viewer-tabs" role="tablist">
-            <button class="tab" type="button" data-view="plan">Планировка</button>
-            <button class="tab is-active" type="button" data-view="sun">Солнечный свет</button>
-            <button class="tab is-disabled" type="button" aria-disabled="true">Вид из окон <small>скоро</small></button>
-          </div>
-
-          <div class="viewer-stage" data-mode="sun">
-            <canvas id="sunCanvas" aria-label="Модель движения солнечного света по квартире"></canvas>
-            <img class="flat-plan" src="https://imgs.etalongroup.ru/imgs/18500000000002189/42500000000303291/44000000002941969.png" alt="Планировка квартиры №2" />
-
-            <div class="compass-card" aria-hidden="true">
-              <img src="assets/sun-scheme.svg" alt="" />
-              <span>ориентация квартиры</span>
-            </div>
-
-            <div class="sun-readout" aria-live="polite">
-              <span class="sun-dot"></span>
-              <strong id="sunStatus">Солнце над горизонтом</strong>
-              <span id="sunAngles">высота 38° · юго-запад</span>
-            </div>
-          </div>
-
-          <div class="controls" id="sunControls">
-            <div class="control-row date-row">
+        <div class="sun-controls" id="sunControls" aria-label="Управление солнечным светом">
+          <div class="sun-control-top">
+            <div class="date-control">
               <label for="dateInput">Дата</label>
               <input id="dateInput" type="date" value="2026-06-21" min="2026-01-01" max="2026-12-31" />
-              <div class="season-buttons" aria-label="Быстрый выбор сезона">
-                <button type="button" data-date="2026-03-21">Весна</button>
-                <button type="button" data-date="2026-06-21" class="is-active">Лето</button>
-                <button type="button" data-date="2026-09-23">Осень</button>
-                <button type="button" data-date="2026-12-21">Зима</button>
-              </div>
             </div>
-
-            <div class="control-row time-row">
-              <button class="play-button" id="playButton" type="button" aria-label="Запустить движение солнца">
-                <span class="play-icon">▶</span>
-              </button>
-              <div class="range-wrap">
-                <div class="time-labels"><span>06:00</span><strong id="timeValue">09:30</strong><span>22:00</span></div>
-                <input id="timeRange" type="range" min="360" max="1320" step="5" value="570" />
-              </div>
+            <div class="season-buttons" aria-label="Быстрый выбор времени года">
+              <button type="button" data-date="2026-03-21">Весна</button>
+              <button type="button" data-date="2026-06-21" class="is-active">Лето</button>
+              <button type="button" data-date="2026-09-23">Осень</button>
+              <button type="button" data-date="2026-12-21">Зима</button>
             </div>
           </div>
-        </section>
+          <div class="time-control">
+            <button class="play-button" id="playButton" type="button" aria-label="Запустить движение солнца"><span>▶</span></button>
+            <span class="edge-time">06:00</span>
+            <input id="timeRange" type="range" min="360" max="1320" step="5" value="570" />
+            <span class="edge-time">22:00</span>
+            <strong id="timeValue">09:30</strong>
+          </div>
+          <p>Демонстрационная визуализация без учёта соседних зданий и выступов фасада.</p>
+        </div>
+
+        <button class="gallery-arrow gallery-arrow-right" type="button" aria-label="Следующая квартира">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
       </div>
+
+      <nav class="view-tabs" aria-label="Вариант отображения планировки">
+        <button class="view-tab is-active" type="button" data-view="furnished">С мебелью</button>
+        <button class="view-tab" type="button" data-view="empty">Без мебели</button>
+        <button class="view-tab" type="button" data-view="floor">На этаже</button>
+        <button class="view-tab sun-tab" type="button" data-view="sun">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1" fill="none" stroke="currentColor" stroke-linecap="round"/></svg>
+          Солнечный свет
+        </button>
+      </nav>
     </section>
 
-    <section class="about" id="about">
-      <p class="eyebrow">Как работает демо</p>
-      <h2>Свет рассчитывается для Москвы по выбранным дате и времени</h2>
-      <div class="about-grid">
-        <p>Положение солнца меняет направление лучей, длину теней и яркость помещений. Камера зафиксирована, поэтому пользователь всегда сохраняет ориентацию в квартире.</p>
-        <p>Для итоговой версии к расчёту можно подключить точную геометрию фасада, соседние корпуса и отдельные настройки для каждой квартиры.</p>
+    <aside class="details-panel" aria-label="Информация о квартире">
+      <div class="details-inner">
+        <p class="apartment-type">1-комнатная квартира №2</p>
+
+        <div class="area-row">
+          <div class="area-value"><span>73.2</span><small>м²</small></div>
+          <button class="favorite-button" id="favoriteButton" type="button" aria-pressed="false">
+            <span>В избранное</span>
+            <svg viewBox="0 0 26 33" aria-hidden="true"><path d="M3 2h20v28l-10-6-10 6V2Z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+          </button>
+        </div>
+
+        <div class="divider"></div>
+
+        <dl class="apartment-meta">
+          <div><dt>корпус</dt><dd>1</dd></div>
+          <div><dt>секция</dt><dd>1</dd></div>
+          <div><dt>этаж</dt><dd>2</dd></div>
+          <div><dt>кол-во комнат</dt><dd>1</dd></div>
+        </dl>
+
+        <div class="divider"></div>
+
+        <div class="price-block">
+          <div class="total-price">153 861 000<span>₽</span></div>
+          <div class="meter-price">2 101 928 ₽</div>
+          <div class="meter-label">цена за 1 м²</div>
+        </div>
+
+        <button class="reserve-button" type="button">Забронировать</button>
+
+        <div class="detail-actions">
+          <a href="https://api.aurix-development.ru/api/pdf/download/3135.pdf" target="_blank" rel="noreferrer">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v13m0 0 5-5m-5 5-5-5M5 21h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Скачать .pdf
+          </a>
+          <button type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18v13H3V6Zm1 1 8 6 8-6" fill="none" stroke="currentColor" stroke-linejoin="round"/></svg>
+            На e-mail
+          </button>
+          <button type="button" id="shareButton">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5" fill="none" stroke="currentColor"/><circle cx="6" cy="12" r="2.5" fill="none" stroke="currentColor"/><circle cx="18" cy="19" r="2.5" fill="none" stroke="currentColor"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4" fill="none" stroke="currentColor"/></svg>
+            Поделиться
+          </button>
+        </div>
+
+        <p class="legal-note">Сайт носит исключительно информационный характер и ни при каких условиях не является публичной офертой, определяемой положениями статьи 437 Гражданского кодекса Российской Федерации.</p>
       </div>
-    </section>
+    </aside>
   </main>
-
-  <footer>
-    <span>AURIX © 2026</span>
-    <span>Интерактивная демо-версия</span>
-  </footer>
 
   <script src="app.js"></script>
 </body>
