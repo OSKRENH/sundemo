@@ -1,360 +1,335 @@
-const canvas = document.getElementById('sceneCanvas');
-const ctx = canvas.getContext('2d');
-const floorView = document.getElementById('floorView');
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const mount = document.getElementById('threeMount');
+const stage = document.getElementById('viewerStage');
+const planView = document.getElementById('planView');
+const sunPanel = document.getElementById('sunPanel');
 const timeRange = document.getElementById('timeRange');
 const timeValue = document.getElementById('timeValue');
-const seasonValue = document.getElementById('seasonValue');
-const sunStatus = document.getElementById('sunStatus');
-const compassTime = document.getElementById('compassTime');
-const compassText = document.getElementById('compassText');
-const sunDot = document.getElementById('sunDot');
-const shadowToggle = document.getElementById('shadowToggle');
-const modeTabs = [...document.querySelectorAll('.mode-tab')];
-const seasonButtons = [...document.querySelectorAll('.season-button')];
-const dragHint = document.getElementById('dragHint');
-const resetViewButton = document.getElementById('resetViewButton');
+const sunCaption = document.getElementById('sunCaption');
+const sunPosition = document.getElementById('sunPosition');
+const compassSun = document.getElementById('compassSun');
+const roomChip = document.getElementById('roomChip');
+const interactionHint = document.getElementById('interactionHint');
+const modeButtons = [...document.querySelectorAll('.mode-button')];
+const seasonButtons = [...document.querySelectorAll('.date-switch button')];
+const resetButton = document.getElementById('resetButton');
+const fullscreenButton = document.getElementById('fullscreenButton');
 
 const SITE = { latitude: 55.7047, longitude: 37.5709, timezone: 3, northOnPlan: 315 };
 const SEASONS = {
-  winter: { label: 'Зимнее солнце', date: '2026-12-21' },
-  shoulder: { label: 'Весна / осень', date: '2026-03-21' },
-  summer: { label: 'Летнее солнце', date: '2026-06-21' }
+  winter: { label: '21 декабря', date: '2026-12-21' },
+  shoulder: { label: '21 марта', date: '2026-03-21' },
+  summer: { label: '21 июня', date: '2026-06-21' }
 };
-
-const HEIGHT = 118;
-const CENTER = [403, 244];
-const OUTER = [
-  [20, 32], [74, 32], [228, 32], [268, 32], [446, 32], [486, 32], [642, 32], [748, 96], [780, 182], [780, 410],
-  [342, 410], [342, 470], [275, 410], [20, 410]
-];
-
+const PLAN_CENTER = [401, 242];
+const PLAN_SCALE = 0.018;
+const WALL_HEIGHT = 3.05;
+const OUTER = [[12,30],[735,30],[770,52],[790,100],[790,410],[340,410],[340,470],[275,410],[12,410]];
 const WALLS = [
-  { a:[20,32], b:[40,32], t:18, outer:true },
-  { a:[228,32], b:[268,32], t:18, outer:true },
-  { a:[446,32], b:[486,32], t:18, outer:true },
-  { a:[642,32], b:[665,32], t:18, outer:true },
-  { a:[20,32], b:[20,410], t:18, outer:true },
-  { a:[780,182], b:[780,410], t:18, outer:true },
-  { a:[20,410], b:[275,410], t:18, outer:true },
-  { a:[342,410], b:[780,410], t:18, outer:true },
-  { a:[342,410], b:[342,470], t:18, outer:true },
-  { a:[342,470], b:[275,410], t:18, outer:true },
-  { a:[665,32], b:[748,96], t:8, outer:true, skipCaps:true },
-  { a:[748,96], b:[780,182], t:8, outer:true, skipCaps:true },
-  { a:[248,32], b:[248,218], t:10, outer:false },
-  { a:[248,246], b:[248,410], t:10, outer:false },
-  { a:[20,244], b:[176,244], t:10, outer:false },
-  { a:[176,244], b:[176,410], t:10, outer:false },
-  { a:[338,244], b:[510,244], t:10, outer:false },
-  { a:[382,244], b:[382,410], t:10, outer:false },
-  { a:[510,244], b:[510,410], t:10, outer:false },
-  { a:[276,410], b:[276,302], t:10, outer:false },
-  { a:[338,410], b:[338,282], t:10, outer:false }
-];
-
+  [[12,30],[42,30],18,true],[[226,30],[288,30],18,true],[[474,30],[536,30],18,true],
+  [[720,30],[735,30],18,true],[[790,100],[790,208],18,true],[[790,386],[790,410],18,true],
+  [[790,410],[340,410],18,true],[[340,410],[340,470],18,true],[[340,470],[275,410],18,true],
+  [[275,410],[12,410],18,true],[[12,410],[12,30],18,true],
+  [[266,30],[266,225],10,false],[[266,245],[266,410],10,false],[[12,243],[180,243],10,false],
+  [[180,243],[180,410],10,false],[[340,243],[510,243],10,false],[[380,243],[380,410],10,false],
+  [[510,243],[510,410],10,false],[[340,410],[340,282],10,false],[[275,410],[275,302],10,false]
+].map(([a,b,thickness,outer]) => ({ a,b,thickness,outer }));
 const WINDOWS = [
-  { a:[40,32], b:[228,32], inward:[0,1], tangent:[1,0] },
-  { a:[268,32], b:[446,32], inward:[0,1], tangent:[1,0] },
-  { a:[486,32], b:[642,32], inward:[0,1], tangent:[1,0] },
-  { a:[665,32], b:[748,96], inward:[-0.55,0.84], tangent:[0.79,0.61] },
-  { a:[748,200], b:[780,360], inward:[-1,0], tangent:[0,1] }
-];
+  [[42,30],[226,30]],[[288,30],[474,30]],[[536,30],[720,30]],
+  [[735,30],[770,52]],[[770,52],[790,100]],[[790,208],[790,386]]
+].map(([a,b]) => ({ a,b }));
+const state = { mode: '3d', season: 'shoulder', minutes: 780 };
 
-const state = {
-  mode: '3d',
-  season: 'shoulder',
-  minutes: 720,
-  yaw: -0.6,
-  pitch: 0.89,
-  dragging: false,
-  pointerId: null,
-  lastX: 0,
-  lastY: 0,
-  showShadows: true
-};
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.08;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.setClearColor(0x000000, 0);
+mount.appendChild(renderer.domElement);
 
-function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
-function degToRad(v) { return v * Math.PI / 180; }
-function radToDeg(v) { return v * 180 / Math.PI; }
-function norm(v) { const l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; }
-function add(a,b) { return [a[0] + b[0], a[1] + b[1]]; }
-function sub(a,b) { return [a[0] - b[0], a[1] - b[1]]; }
-function mul(v,s) { return [v[0] * s, v[1] * s]; }
-function mid(a,b) { return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; }
-function perp(v) { return [-v[1], v[0]]; }
-function formatTime(m) {
-  const mm = ((m % 1440) + 1440) % 1440;
-  const h = Math.floor(mm / 60);
-  const mi = mm % 60;
-  return `${String(h).padStart(2,'0')}:${String(mi).padStart(2,'0')}`;
+const scene = new THREE.Scene();
+scene.background = null;
+scene.fog = new THREE.Fog(0xf2f2f0, 20, 36);
+const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+camera.position.set(11.7, 11.2, 14.8);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0.2, 0.72, 0.15);
+controls.enableDamping = true;
+controls.dampingFactor = 0.075;
+controls.enablePan = true;
+controls.screenSpacePanning = true;
+controls.minDistance = 8;
+controls.maxDistance = 28;
+controls.minPolarAngle = THREE.MathUtils.degToRad(27);
+controls.maxPolarAngle = THREE.MathUtils.degToRad(78);
+controls.mouseButtons.LEFT = THREE.MOUSE.ROTATE;
+controls.mouseButtons.MIDDLE = THREE.MOUSE.DOLLY;
+controls.mouseButtons.RIGHT = THREE.MOUSE.PAN;
+controls.saveState();
+
+const apartment = new THREE.Group();
+scene.add(apartment);
+const floorMaterial = new THREE.MeshStandardMaterial({ color: 0xf5f4f0, roughness: 0.94, metalness: 0, transparent: true, opacity: 0.98, side: THREE.DoubleSide });
+const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xfafafa, roughness: 0.9, metalness: 0 });
+const outerWallMaterial = new THREE.MeshStandardMaterial({ color: 0xf3f3f2, roughness: 0.92, metalness: 0 });
+const frameMaterial = new THREE.MeshStandardMaterial({ color: 0xe8e8e6, roughness: 0.85, metalness: 0 });
+const glassMaterial = new THREE.MeshPhysicalMaterial({ color: 0xb9d9e4, roughness: 0.08, metalness: 0, transmission: 0.35, transparent: true, opacity: 0.18, depthWrite: false, side: THREE.DoubleSide });
+const edgeMaterial = new THREE.LineBasicMaterial({ color: 0xcacac7, transparent: true, opacity: 0.48 });
+
+function planToWorld(point) {
+  return new THREE.Vector3((point[0] - PLAN_CENTER[0]) * PLAN_SCALE, 0, (point[1] - PLAN_CENTER[1]) * PLAN_SCALE);
 }
+function floorShape() {
+  const shape = new THREE.Shape();
+  OUTER.forEach((point, index) => {
+    const x = (point[0] - PLAN_CENTER[0]) * PLAN_SCALE;
+    const y = -(point[1] - PLAN_CENTER[1]) * PLAN_SCALE;
+    if (index === 0) shape.moveTo(x, y); else shape.lineTo(x, y);
+  });
+  shape.closePath();
+  return shape;
+}
+function createFloor() {
+  const geometry = new THREE.ShapeGeometry(floorShape());
+  geometry.rotateX(-Math.PI / 2);
+  const floor = new THREE.Mesh(geometry, floorMaterial);
+  floor.receiveShadow = true;
+  apartment.add(floor);
+  const underside = new THREE.Mesh(geometry.clone(), new THREE.MeshStandardMaterial({ color: 0xe8e8e6, roughness: 1 }));
+  underside.position.y = -0.11;
+  underside.receiveShadow = true;
+  apartment.add(underside);
+  const blockerMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, colorWrite: false, depthWrite: false, side: THREE.DoubleSide });
+  const ceiling = new THREE.Mesh(geometry.clone(), blockerMaterial);
+  ceiling.position.y = WALL_HEIGHT;
+  ceiling.castShadow = true;
+  apartment.add(ceiling);
+}
+function createBoxAlongSegment(a, b, thickness, height, material, y = height / 2) {
+  const start = planToWorld(a);
+  const end = planToWorld(b);
+  const dx = end.x - start.x;
+  const dz = end.z - start.z;
+  const length = Math.hypot(dx, dz);
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(length, height, thickness * PLAN_SCALE), material);
+  mesh.position.set((start.x + end.x) / 2, y, (start.z + end.z) / 2);
+  mesh.rotation.y = -Math.atan2(dz, dx);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  return mesh;
+}
+function addEdges(mesh) {
+  mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, 24), edgeMaterial));
+}
+function createWalls() {
+  WALLS.forEach((wall) => {
+    const mesh = createBoxAlongSegment(wall.a, wall.b, wall.thickness, WALL_HEIGHT, wall.outer ? outerWallMaterial : wallMaterial);
+    addEdges(mesh);
+    apartment.add(mesh);
+  });
+}
+function createWindow(windowSegment) {
+  const start = planToWorld(windowSegment.a);
+  const end = planToWorld(windowSegment.b);
+  const dx = end.x - start.x;
+  const dz = end.z - start.z;
+  const length = Math.hypot(dx, dz);
+  const angle = -Math.atan2(dz, dx);
+  const sill = 0.36;
+  const height = 2.34;
+  const depth = 0.045;
+  const frame = 0.075;
+  const group = new THREE.Group();
+  group.position.set((start.x + end.x) / 2, 0, (start.z + end.z) / 2);
+  group.rotation.y = angle;
+  const glass = new THREE.Mesh(new THREE.BoxGeometry(Math.max(0.08, length - frame * 2), height, depth), glassMaterial);
+  glass.position.y = sill + height / 2;
+  glass.renderOrder = 2;
+  group.add(glass);
+  const horizontalGeometry = new THREE.BoxGeometry(length, frame, depth * 1.8);
+  const bottom = new THREE.Mesh(horizontalGeometry, frameMaterial);
+  bottom.position.y = sill;
+  bottom.castShadow = true;
+  group.add(bottom);
+  const top = bottom.clone();
+  top.position.y = sill + height;
+  group.add(top);
+  const verticalGeometry = new THREE.BoxGeometry(frame, height + frame, depth * 1.8);
+  const left = new THREE.Mesh(verticalGeometry, frameMaterial);
+  left.position.set(-length / 2 + frame / 2, sill + height / 2, 0);
+  left.castShadow = true;
+  group.add(left);
+  const right = left.clone();
+  right.position.x = length / 2 - frame / 2;
+  group.add(right);
+  const mullionCount = length > 3.2 ? 2 : length > 1.7 ? 1 : 0;
+  for (let index = 1; index <= mullionCount; index += 1) {
+    const mullion = new THREE.Mesh(verticalGeometry, frameMaterial);
+    mullion.position.set(-length / 2 + (length * index) / (mullionCount + 1), sill + height / 2, 0);
+    mullion.castShadow = true;
+    group.add(mullion);
+  }
+  apartment.add(group);
+}
+function createGround() {
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.ShadowMaterial({ color: 0x000000, opacity: 0.11 }));
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -0.13;
+  ground.receiveShadow = true;
+  scene.add(ground);
+}
+createFloor();
+createWalls();
+WINDOWS.forEach(createWindow);
+createGround();
+
+const hemisphere = new THREE.HemisphereLight(0xffffff, 0xd4d2cd, 2.15);
+scene.add(hemisphere);
+const fillLight = new THREE.DirectionalLight(0xffffff, 1.25);
+fillLight.position.set(-8, 12, 8);
+scene.add(fillLight);
+const rimLight = new THREE.DirectionalLight(0xdde6ec, 0.45);
+rimLight.position.set(7, 6, -10);
+scene.add(rimLight);
+const sunLight = new THREE.DirectionalLight(0xfff1c7, 0);
+sunLight.castShadow = true;
+sunLight.shadow.mapSize.set(2048, 2048);
+sunLight.shadow.camera.left = -14;
+sunLight.shadow.camera.right = 14;
+sunLight.shadow.camera.top = 14;
+sunLight.shadow.camera.bottom = -14;
+sunLight.shadow.camera.near = 0.5;
+sunLight.shadow.camera.far = 45;
+sunLight.shadow.bias = -0.00035;
+sunLight.shadow.normalBias = 0.035;
+sunLight.target.position.set(0, 0.6, 0);
+scene.add(sunLight, sunLight.target);
+
+function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+function degToRad(value) { return value * Math.PI / 180; }
+function radToDeg(value) { return value * 180 / Math.PI; }
 function dayOfYear(date) {
   const start = new Date(Date.UTC(date.getUTCFullYear(), 0, 0));
   return Math.floor((date - start) / 86400000);
 }
-function currentDate() {
-  const [y,m,d] = SEASONS[state.season].date.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, d, 12));
-}
-function directionLabel(azimuth) {
-  const labels = ['север','северо-восток','восток','юго-восток','юг','юго-запад','запад','северо-запад'];
-  return labels[Math.round(azimuth / 45) % 8];
+function dateForSeason() {
+  const [year, month, day] = SEASONS[state.season].date.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day, 12));
 }
 function solarPosition(date, minutes) {
   const day = dayOfYear(date);
   const hour = minutes / 60;
   const gamma = 2 * Math.PI / 365 * (day - 1 + (hour - 12) / 24);
-  const eq = 229.18 * (0.000075 + 0.001868 * Math.cos(gamma) - 0.032077 * Math.sin(gamma) - 0.014615 * Math.cos(2 * gamma) - 0.040849 * Math.sin(2 * gamma));
-  const decl = 0.006918 - 0.399912 * Math.cos(gamma) + 0.070257 * Math.sin(gamma) - 0.006758 * Math.cos(2 * gamma) + 0.000907 * Math.sin(2 * gamma) - 0.002697 * Math.cos(3 * gamma) + 0.00148 * Math.sin(3 * gamma);
-  let trueSolarTime = minutes + eq + 4 * SITE.longitude - 60 * SITE.timezone;
-  while (trueSolarTime < 0) trueSolarTime += 1440;
-  while (trueSolarTime >= 1440) trueSolarTime -= 1440;
-  let hourAngle = trueSolarTime / 4 - 180;
+  const equationOfTime = 229.18 * (0.000075 + 0.001868 * Math.cos(gamma) - 0.032077 * Math.sin(gamma) - 0.014615 * Math.cos(2 * gamma) - 0.040849 * Math.sin(2 * gamma));
+  const declination = 0.006918 - 0.399912 * Math.cos(gamma) + 0.070257 * Math.sin(gamma) - 0.006758 * Math.cos(2 * gamma) + 0.000907 * Math.sin(2 * gamma) - 0.002697 * Math.cos(3 * gamma) + 0.00148 * Math.sin(3 * gamma);
+  let solarTime = minutes + equationOfTime + 4 * SITE.longitude - 60 * SITE.timezone;
+  while (solarTime < 0) solarTime += 1440;
+  while (solarTime >= 1440) solarTime -= 1440;
+  let hourAngle = solarTime / 4 - 180;
   if (hourAngle < -180) hourAngle += 360;
-  const lat = degToRad(SITE.latitude);
-  const ha = degToRad(hourAngle);
-  const cosZen = clamp(Math.sin(lat) * Math.sin(decl) + Math.cos(lat) * Math.cos(decl) * Math.cos(ha), -1, 1);
-  const zen = Math.acos(cosZen);
-  const altitude = 90 - radToDeg(zen);
-  const azimuth = (radToDeg(Math.atan2(Math.sin(ha), Math.cos(ha) * Math.sin(lat) - Math.tan(decl) * Math.cos(lat))) + 180 + 360) % 360;
+  const latitude = degToRad(SITE.latitude);
+  const hourAngleRad = degToRad(hourAngle);
+  const cosZenith = clamp(Math.sin(latitude) * Math.sin(declination) + Math.cos(latitude) * Math.cos(declination) * Math.cos(hourAngleRad), -1, 1);
+  const altitude = 90 - radToDeg(Math.acos(cosZenith));
+  const azimuth = (radToDeg(Math.atan2(Math.sin(hourAngleRad), Math.cos(hourAngleRad) * Math.sin(latitude) - Math.tan(declination) * Math.cos(latitude))) + 540) % 360;
   return { altitude, azimuth };
 }
-function planDirection(azimuth) {
-  const angle = degToRad(SITE.northOnPlan + azimuth);
-  return norm([Math.sin(angle), -Math.cos(angle)]);
+function formatTime(minutes) {
+  const normalized = ((minutes % 1440) + 1440) % 1440;
+  return `${String(Math.floor(normalized / 60)).padStart(2, '0')}:${String(normalized % 60).padStart(2, '0')}`;
 }
-function getMetrics() {
-  const rect = canvas.getBoundingClientRect();
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width = Math.round(rect.width * dpr);
-  canvas.height = Math.round(rect.height * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  return { width: rect.width, height: rect.height };
+function directionLabel(azimuth) {
+  const labels = ['Север','Северо-восток','Восток','Юго-восток','Юг','Юго-запад','Запад','Северо-запад'];
+  return labels[Math.round(azimuth / 45) % 8];
 }
-function transformPoint(p, z = 0) {
-  const dx = p[0] - CENTER[0];
-  const dy = p[1] - CENTER[1];
-  const cosY = Math.cos(state.yaw), sinY = Math.sin(state.yaw);
-  const cosP = Math.cos(state.pitch), sinP = Math.sin(state.pitch);
-  const x1 = dx * cosY - dy * sinY;
-  const y1 = dx * sinY + dy * cosY;
-  const y2 = y1 * cosP - z * sinP;
-  const z2 = y1 * sinP + z * cosP;
-  return { x: x1, y: y2, depth: z2 };
-}
-function project(p, z, metrics) {
-  const t = transformPoint(p, z);
-  const scale = Math.min((metrics.width - 140) / 980, (metrics.height - 90) / 760);
-  const camera = 1250;
-  const persp = camera / (camera - t.depth);
-  return { x: metrics.width / 2 + t.x * scale * persp, y: metrics.height / 2 + t.y * scale * persp + 4, depth: t.depth };
-}
-function drawPoly(points, zs, fill, stroke, metrics, blur) {
-  const projected = points.map((p, i) => project(p, zs[i], metrics));
-  ctx.save();
-  if (blur) { ctx.shadowBlur = blur.radius; ctx.shadowColor = blur.color; }
-  ctx.beginPath();
-  projected.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
-  ctx.closePath();
-  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
-  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
-  ctx.restore();
-}
-function clipApartment(metrics) {
-  const projected = OUTER.map(p => project(p, 1, metrics));
-  ctx.beginPath();
-  projected.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y));
-  ctx.closePath();
-  ctx.clip();
-}
-function segmentPrism(seg) {
-  const dir = norm(sub(seg.b, seg.a));
-  const off = mul(perp(dir), seg.t / 2);
-  return [add(seg.a, off), add(seg.b, off), sub(seg.b, off), sub(seg.a, off)];
-}
-function wallFaces(seg) {
-  const base = segmentPrism(seg);
-  const c1 = seg.outer ? 'rgb(245,245,245)' : 'rgb(248,248,248)';
-  const c2 = seg.outer ? 'rgb(236,236,236)' : 'rgb(241,241,241)';
-  const c3 = seg.outer ? 'rgb(228,228,228)' : 'rgb(235,235,235)';
-  return [
-    { pts:[base[0],base[1],base[1],base[0]], zs:[0,0,HEIGHT,HEIGHT], fill:c1, stroke:'rgba(175,175,175,.55)' },
-    { pts:[base[1],base[2],base[2],base[1]], zs:[0,0,HEIGHT,HEIGHT], fill:c2, stroke:'rgba(175,175,175,.45)' },
-    { pts:[base[2],base[3],base[3],base[2]], zs:[0,0,HEIGHT,HEIGHT], fill:c3, stroke:'rgba(175,175,175,.36)' },
-    { pts:[base[0],base[1],base[2],base[3]], zs:[HEIGHT,HEIGHT,HEIGHT,HEIGHT], fill:'rgba(255,255,255,.14)', stroke:'rgba(210,210,210,.25)' }
-  ];
-}
-function drawBackground(sun, metrics) {
-  const daylight = clamp((sun.altitude + 12) / 75, 0.18, 1);
-  const grad = ctx.createLinearGradient(0, 0, 0, metrics.height);
-  grad.addColorStop(0, `rgba(255,255,255,${0.92 * daylight + 0.08})`);
-  grad.addColorStop(1, `rgba(226,226,225,${0.88 + (1 - daylight) * 0.12})`);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, metrics.width, metrics.height);
-}
-function drawGroundShadow(metrics) {
-  const projected = OUTER.map(p => project(p, 0, metrics));
-  ctx.save();
-  ctx.filter = 'blur(20px)';
-  ctx.beginPath();
-  projected.forEach((p, i) => i ? ctx.lineTo(p.x + 14, p.y + 18) : ctx.moveTo(p.x + 14, p.y + 18));
-  ctx.closePath();
-  ctx.fillStyle = 'rgba(0,0,0,.08)';
-  ctx.fill();
-  ctx.restore();
-}
-function drawShadows(sun, metrics) {
-  if (!state.showShadows || sun.altitude <= 0) return;
-  const incoming = mul(planDirection(sun.azimuth), -1);
-  const len = clamp((HEIGHT / Math.tan(degToRad(clamp(sun.altitude, 6, 75)))) * 0.85, 18, 125);
-  const candidates = WALLS.filter(w => !w.outer)
-    .map(w => {
-      const dir = norm(sub(w.b, w.a));
-      const normal = perp(dir);
-      const facing = Math.abs(normal[0] * incoming[0] + normal[1] * incoming[1]);
-      const length = Math.hypot(w.b[0] - w.a[0], w.b[1] - w.a[1]);
-      return { w, score: facing * length, facing };
-    })
-    .filter(x => x.score > 45)
-    .sort((a,b) => b.score - a.score)
-    .slice(0, 3);
-  ctx.save();
-  clipApartment(metrics);
-  for (const { w, facing } of candidates) {
-    const shift = mul(incoming, len);
-    drawPoly([w.a, w.b, add(w.b, shift), add(w.a, shift)], [1,1,1,1], `rgba(60,60,60,${0.08 + facing * 0.04})`, null, metrics, { radius: 5, color: 'rgba(0,0,0,.10)' });
+function updateSun() {
+  const sun = solarPosition(dateForSeason(), state.minutes);
+  const altitude = degToRad(Math.max(sun.altitude, 0));
+  const planAngle = degToRad(SITE.northOnPlan + sun.azimuth);
+  const horizontal = Math.cos(altitude);
+  const distance = 22;
+  sunLight.position.set(Math.sin(planAngle) * horizontal * distance, Math.max(0.35, Math.sin(altitude) * distance), -Math.cos(planAngle) * horizontal * distance);
+  sunLight.intensity = state.mode === 'sun' && sun.altitude > -1 ? clamp(2.4 + sun.altitude / 18, 2.4, 5.8) : 0;
+  sunLight.color.set(sun.altitude < 12 ? 0xffd39a : 0xfff1c7);
+  sunLight.shadow.needsUpdate = true;
+  const ambientDaylight = clamp((sun.altitude + 8) / 60, 0.16, 1);
+  if (state.mode === 'sun') {
+    hemisphere.intensity = 0.42 + ambientDaylight * 0.32;
+    fillLight.intensity = 0.12;
+    rimLight.intensity = 0.08;
+    renderer.toneMappingExposure = sun.altitude < 8 ? 1.2 : 1.05;
+  } else {
+    hemisphere.intensity = 2.15;
+    fillLight.intensity = 1.25;
+    rimLight.intensity = 0.45;
+    renderer.toneMappingExposure = 1.08;
   }
-  ctx.restore();
-}
-function drawWindows(metrics) {
-  for (const win of WINDOWS) {
-    drawPoly([win.a, win.b, win.b, win.a], [18,18,96,96], 'rgba(174,211,227,.18)', 'rgba(143,194,219,.85)', metrics);
-  }
-}
-function drawRays(sun, metrics) {
-  if (sun.altitude <= 0) return 0;
-  const incoming = mul(planDirection(sun.azimuth), -1);
-  const distance = clamp(130 + 280 / Math.tan(degToRad(clamp(sun.altitude, 8, 75))), 160, 340);
-  const offsets = [-0.32,-0.16,0,0.16,0.32];
-  let lit = 0;
-  ctx.save();
-  clipApartment(metrics);
-  for (const win of WINDOWS) {
-    const exp = incoming[0] * win.inward[0] + incoming[1] * win.inward[1];
-    if (exp <= 0.05) continue;
-    lit += 1;
-    const tangent = norm(win.tangent);
-    const len = Math.hypot(win.b[0] - win.a[0], win.b[1] - win.a[1]);
-    const origin = add(mid(win.a, win.b), mul(win.inward, 6));
-    const wideEnd = add(origin, mul(incoming, distance * 0.95));
-    const wideHalf = clamp(len * 0.48, 25, 85);
-    drawPoly([
-      add(origin, mul(tangent, -wideHalf)),
-      add(origin, mul(tangent, wideHalf)),
-      add(wideEnd, mul(tangent, wideHalf * 0.35)),
-      add(wideEnd, mul(tangent, -wideHalf * 0.35))
-    ], [84,84,3,3], `rgba(245,224,176,${0.035 + exp * 0.04})`, null, metrics, { radius: 16, color: 'rgba(238,206,125,.18)' });
-    for (const off of offsets) {
-      const start = add(add(mid(win.a, win.b), mul(tangent, len * off)), mul(win.inward, 8));
-      const end = add(start, mul(incoming, distance * (1 - Math.abs(off) * 0.08)));
-      const sw = clamp(len * 0.13, 8, 22);
-      const ew = sw * 0.42;
-      drawPoly([
-        add(start, mul(tangent, -sw)),
-        add(start, mul(tangent, sw)),
-        add(end, mul(tangent, ew)),
-        add(end, mul(tangent, -ew))
-      ], [82,82,2,2], `rgba(247,225,179,${0.055 + exp * 0.06})`, null, metrics, { radius: 8, color: 'rgba(238,206,125,.22)' });
-    }
-  }
-  ctx.restore();
-  return lit;
-}
-function render() {
-  const metrics = getMetrics();
-  ctx.clearRect(0, 0, metrics.width, metrics.height);
-  if (state.mode !== '3d') return;
-  const sun = solarPosition(currentDate(), state.minutes);
-  drawBackground(sun, metrics);
-  drawGroundShadow(metrics);
-  drawPoly(OUTER, Array(OUTER.length).fill(0), 'rgba(255,255,255,.22)', 'rgba(165,165,165,.18)', metrics);
-  drawShadows(sun, metrics);
-  const faces = [];
-  for (const wall of WALLS) {
-    for (const face of wallFaces(wall)) {
-      const depth = face.pts.reduce((sum, p, i) => sum + transformPoint(p, face.zs[i]).depth, 0) / face.pts.length;
-      faces.push({ ...face, depth });
-    }
-  }
-  faces.sort((a,b) => a.depth - b.depth);
-  faces.forEach(f => drawPoly(f.pts, f.zs, f.fill, f.stroke, metrics));
-  drawWindows(metrics);
-  const litWindows = drawRays(sun, metrics);
-  drawPoly(OUTER, Array(OUTER.length).fill(HEIGHT), 'rgba(255,255,255,.025)', 'rgba(220,220,220,.10)', metrics);
-  updateUI(sun, litWindows);
-}
-function updateUI(sun, litWindows) {
-  const time = formatTime(state.minutes);
-  timeValue.textContent = time;
-  seasonValue.textContent = SEASONS[state.season].label;
-  const altitudeText = Math.round(sun.altitude);
-  sunStatus.textContent = sun.altitude > 0
-    ? `Азимут ${Math.round(sun.azimuth)}° · ${directionLabel(sun.azimuth)} · высота ${altitudeText}° · лучи из ${litWindows} окон`
-    : `Солнце за горизонтом · ${directionLabel(sun.azimuth)} · высота ${altitudeText}°`;
-  compassTime.textContent = time;
-  compassText.textContent = sun.altitude > 0 ? `${directionLabel(sun.azimuth)} · ${altitudeText}°` : 'солнце за горизонтом';
-  const angle = degToRad(sun.azimuth);
-  const radius = 33;
-  const vertical = clamp(1 - (sun.altitude + 5) / 75, 0.4, 1.2);
-  const dx = Math.sin(angle) * radius;
-  const dy = -Math.cos(angle) * radius * vertical;
-  sunDot.style.transform = `translate(${dx}px, ${dy}px)`;
-  sunDot.style.opacity = sun.altitude > 0 ? '1' : '.35';
+  timeValue.textContent = formatTime(state.minutes);
+  sunCaption.textContent = `${SEASONS[state.season].label} · Москва`;
+  sunPosition.textContent = sun.altitude > 0 ? `${directionLabel(sun.azimuth)} · ${Math.round(sun.altitude)}°` : 'Солнце за горизонтом';
+  const compassRadius = 25;
+  const compassAngle = degToRad(sun.azimuth);
+  compassSun.style.transform = `translate(${Math.sin(compassAngle) * compassRadius}px, ${-Math.cos(compassAngle) * compassRadius}px)`;
+  compassSun.style.opacity = state.mode === 'sun' ? (sun.altitude > 0 ? '1' : '.28') : '0';
 }
 function setMode(mode) {
   state.mode = mode;
-  modeTabs.forEach(btn => btn.classList.toggle('is-active', btn.dataset.mode === mode));
-  const is3d = mode === '3d';
-  floorView.hidden = is3d;
-  canvas.hidden = !is3d;
-  dragHint.hidden = !is3d;
-  if (is3d) render();
+  modeButtons.forEach((button) => {
+    const active = button.dataset.mode === mode;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  const is2d = mode === '2d';
+  mount.hidden = is2d;
+  planView.hidden = !is2d;
+  sunPanel.hidden = mode !== 'sun';
+  roomChip.hidden = is2d;
+  interactionHint.hidden = is2d;
+  controls.enabled = !is2d;
+  updateSun();
+  requestAnimationFrame(resize);
 }
-function setSeason(season) {
-  state.season = season;
-  seasonButtons.forEach(btn => btn.classList.toggle('is-active', btn.dataset.season === season));
-  render();
-}
-modeTabs.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
-seasonButtons.forEach(btn => btn.addEventListener('click', () => setSeason(btn.dataset.season)));
-shadowToggle.addEventListener('change', () => { state.showShadows = shadowToggle.checked; render(); });
-timeRange.addEventListener('input', () => { state.minutes = Number(timeRange.value); render(); });
-resetViewButton.addEventListener('click', () => { state.yaw = -0.6; state.pitch = 0.89; render(); });
-canvas.addEventListener('pointerdown', event => {
-  if (state.mode !== '3d') return;
-  state.dragging = true;
-  state.pointerId = event.pointerId;
-  state.lastX = event.clientX;
-  state.lastY = event.clientY;
-  dragHint.style.opacity = '0';
-  canvas.setPointerCapture(event.pointerId);
+modeButtons.forEach((button) => button.addEventListener('click', () => setMode(button.dataset.mode)));
+seasonButtons.forEach((button) => button.addEventListener('click', () => {
+  state.season = button.dataset.season;
+  seasonButtons.forEach((item) => item.classList.toggle('is-active', item === button));
+  updateSun();
+}));
+timeRange.addEventListener('input', () => { state.minutes = Number(timeRange.value); updateSun(); });
+resetButton.addEventListener('click', () => {
+  camera.position.set(11.7, 11.2, 14.8);
+  controls.target.set(0.2, 0.72, 0.15);
+  controls.update();
 });
-canvas.addEventListener('pointermove', event => {
-  if (!state.dragging || event.pointerId !== state.pointerId) return;
-  state.yaw += (event.clientX - state.lastX) * 0.008;
-  state.pitch = clamp(state.pitch - (event.clientY - state.lastY) * 0.0034, 0.56, 1.18);
-  state.lastX = event.clientX;
-  state.lastY = event.clientY;
-  render();
+fullscreenButton.addEventListener('click', async () => {
+  if (!document.fullscreenElement) await stage.requestFullscreen?.(); else await document.exitFullscreen?.();
 });
-function stopDrag(event) {
-  if (event.pointerId !== state.pointerId) return;
-  state.dragging = false;
-  state.pointerId = null;
-  try { canvas.releasePointerCapture(event.pointerId); } catch (e) {}
+let hintHidden = false;
+controls.addEventListener('start', () => {
+  if (!hintHidden) { interactionHint.style.opacity = '0'; hintHidden = true; }
+});
+function resize() {
+  const width = mount.clientWidth;
+  const height = mount.clientHeight;
+  if (!width || !height) return;
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height, false);
 }
-canvas.addEventListener('pointerup', stopDrag);
-canvas.addEventListener('pointercancel', stopDrag);
-canvas.addEventListener('pointerleave', stopDrag);
-window.addEventListener('resize', render);
-render();
+new ResizeObserver(resize).observe(stage);
+window.addEventListener('resize', resize);
+document.addEventListener('fullscreenchange', resize);
+function animate() {
+  controls.update();
+  renderer.render(scene, camera);
+  requestAnimationFrame(animate);
+}
+resize();
+setMode('3d');
+updateSun();
+animate();
