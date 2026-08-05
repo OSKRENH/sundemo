@@ -5,16 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#050505" />
   <title>Omega Residence — солнечный свет в квартире №2</title>
+  <link rel="preconnect" href="https://fonts.cdnfonts.com" />
+  <link href="https://fonts.cdnfonts.com/css/tt-hoves-pro-trial" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="site-header">
     <button class="header-link project-link" type="button">Меню проекта <span>⌄</span></button>
     <div class="header-crumbs">Выбор / Резиденция Омега / Корпус 1 / Этаж 2 / №2</div>
-    <div class="brand-lockup" aria-label="Резиденция Омега">
-      <span class="omega-mark"></span>
-      <span class="brand-text"><small>резиденция</small><strong>ОМЕГА</strong></span>
-    </div>
+    <img class="omega-logo" src="assets/omega-logo.svg" alt="Резиденция Омега" />
     <a class="header-link select-link" href="#">Выбрать недвижимость</a>
     <button class="icon-button bookmark-button" type="button" aria-label="Добавить в избранное"></button>
     <button class="icon-button burger-button" type="button" aria-label="Открыть меню"><span></span><span></span></button>
@@ -36,7 +35,6 @@
           </div>
 
           <button id="resetViewButton" class="reset-view-button" type="button" aria-label="Сбросить ракурс">↺</button>
-
           <div class="drag-hint" id="dragHint">Потяните мышью или пальцем, чтобы повернуть 3D-планировку</div>
 
           <div class="compass-box" aria-label="Роза ветров и движение солнца">
@@ -98,7 +96,6 @@
               </div>
               <div class="timeline-status" id="sunStatus">Азимут 180° · юг · высота 45°</div>
             </div>
-
             <div class="timeline-row">
               <span class="edge-time">12:00</span>
               <div class="range-wrap">
@@ -114,7 +111,7 @@
 
     <aside class="details-panel">
       <p class="apartment-type">1-комнатная квартира №2</p>
-      <div class="main-metric">73.2 <span>м²</span></div>
+      <div class="main-metric"><img class="area-glyphs" src="assets/area-guild.svg" alt="73.2 м²" /></div>
 
       <div class="top-actions">
         <span>В избранное</span>
@@ -129,7 +126,7 @@
       </dl>
 
       <div class="price-block">
-        <div class="price-main">153 861 000<span>₽</span></div>
+        <div class="price-main"><img class="price-glyphs" src="assets/price-guild.svg" alt="153 861 000 ₽" /></div>
         <div class="price-sub">2 101 928 ₽ <small>цена за 1 м²</small></div>
       </div>
 
@@ -141,7 +138,10 @@
         <button type="button">⤴ Поделиться</button>
       </div>
 
-      <p class="legal-note">В демо отображаются только внешние и внутренние стены и перегородки. Тени можно отключить отдельной галочкой. Роза ветров статична, вокруг неё перемещается солнце по текущему времени.</p>
+      <div class="panel-footer">
+        <p class="legal-note">В демо отображаются только внешние и внутренние стены и перегородки. Тени можно отключить отдельной галочкой. Роза ветров статична, вокруг неё перемещается солнце по текущему времени.</p>
+        <img class="aurix-footer" src="assets/aurix-logo.svg" alt="AURIX" />
+      </div>
     </aside>
   </main>
 
