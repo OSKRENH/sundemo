@@ -19,7 +19,7 @@ const siteLocation = {
 };
 
 const plan = new Image();
-plan.src = 'assets/plan.png';
+plan.src = 'https://imgs.etalongroup.ru/imgs/18500000000002189/42500000000303291/44000000002941969.png';
 
 const state = {
   playing: false,
