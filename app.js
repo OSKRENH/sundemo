@@ -314,7 +314,7 @@ function render() {
     dpr * projection.f
   );
 
-  ctx.drawImage(plan, 0, 0, 800, 482.7);
+  ctx.drawImage(plan, 90, 250, 820, 500, 0, 0, 800, 482.7);
 
   ctx.save();
   clipFloor();
@@ -351,7 +351,7 @@ function setDate(value) {
 function stopPlayback() {
   state.playing = false;
   playButton.classList.remove('is-playing');
-  if (state.timer) cancelAnimationFrame(state.timer);
+  if (state.timer) clearTimeout(state.timer);
   state.timer = null;
 }
 
