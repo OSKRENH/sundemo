@@ -4,121 +4,118 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#050505" />
-  <title>Omega Residence — солнечный свет в квартире №2</title>
+  <title>Omega Residence — квартира №2</title>
   <link rel="preconnect" href="https://fonts.cdnfonts.com" />
   <link href="https://fonts.cdnfonts.com/css/tt-hoves-pro-trial" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="site-header">
-    <button class="header-link project-link" type="button">Меню проекта <span>⌄</span></button>
-    <div class="header-crumbs">Выбор / Резиденция Омега / Корпус 1 / Этаж 2 / №2</div>
+    <button class="header-menu" type="button">Меню проекта <span aria-hidden="true">⌄</span></button>
+    <nav class="breadcrumbs" aria-label="Хлебные крошки">
+      <span>Выбор</span><i>/</i><span>Резиденция Омега</span><i>/</i><span>Корпус 1</span><i>/</i><span>Этаж 2</span><i>/</i><span>№2</span>
+    </nav>
     <img class="omega-logo" src="assets/omega-logo.svg" alt="Резиденция Омега" />
-    <a class="header-link select-link" href="#">Выбрать недвижимость</a>
-    <button class="icon-button bookmark-button" type="button" aria-label="Добавить в избранное"></button>
-    <button class="icon-button burger-button" type="button" aria-label="Открыть меню"><span></span><span></span></button>
+    <a class="property-link" href="#">Выбрать недвижимость</a>
+    <button class="bookmark-icon" type="button" aria-label="Добавить в избранное"></button>
+    <button class="burger-icon" type="button" aria-label="Открыть меню"><span></span><span></span></button>
   </header>
 
   <main class="page-shell">
-    <section class="viewer-column">
-      <div class="viewer-stage-panel">
-        <button class="stage-arrow left" type="button" aria-label="Предыдущая квартира">‹</button>
+    <section class="viewer" aria-label="Интерактивный просмотр квартиры">
+      <div class="viewer-stage" id="viewerStage">
+        <div class="three-mount" id="threeMount"></div>
 
-        <div class="stage-center">
-          <canvas id="sceneCanvas" class="scene-canvas" aria-label="3D планировка квартиры с моделированием солнечного света"></canvas>
+        <div class="plan-view" id="planView" hidden>
+          <img src="assets/plan-giraffe.svg" alt="Двухмерная планировка квартиры №2" />
+        </div>
 
-          <div id="floorView" class="floorplate-view" hidden>
-            <div class="floorplate-card">
-              <img src="assets/floorplate.svg" alt="Расположение квартиры на этаже" class="floorplate-image" />
-              <div class="floorplate-caption">Статичная планировка этажа с расположением квартиры</div>
+        <div class="viewer-title">
+          <small>Резиденция Омега</small>
+          <strong>Квартира №2</strong>
+          <span>73,2 м² · этаж 2</span>
+        </div>
+
+        <div class="viewer-top-center">
+          <button class="room-select" type="button">
+            <span>Вся квартира</span>
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+          </button>
+        </div>
+
+        <div class="viewer-actions">
+          <button id="resetButton" type="button" aria-label="Сбросить ракурс" title="Сбросить ракурс">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 9A8 8 0 1 1 4 14.5M4.5 9V4.5M4.5 9H9"/></svg>
+          </button>
+          <button id="fullscreenButton" type="button" aria-label="На весь экран" title="На весь экран">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M20 16v4h-4M4 16v4h4"/></svg>
+          </button>
+        </div>
+
+        <button class="gallery-arrow gallery-arrow--left" type="button" aria-label="Предыдущая квартира">‹</button>
+        <button class="gallery-arrow gallery-arrow--right" type="button" aria-label="Следующая квартира">›</button>
+
+        <div class="compass" id="compass" aria-label="Ориентация квартиры">
+          <span class="compass-n">С</span>
+          <span class="compass-e">В</span>
+          <span class="compass-s">Ю</span>
+          <span class="compass-w">З</span>
+          <i class="compass-ring"></i>
+          <i class="compass-arrow"></i>
+          <i class="compass-sun" id="compassSun"></i>
+        </div>
+
+        <div class="room-chip" id="roomChip">
+          <span class="room-chip-dot"></span>
+          <div><strong>Кухня-гостиная</strong><small>36,8 м²</small></div>
+          <span class="room-chip-arrow">→</span>
+        </div>
+
+        <div class="mode-dock" role="tablist" aria-label="Режим просмотра">
+          <button class="mode-button" type="button" data-mode="2d" role="tab">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM9 5v7h11M9 12H4M15 12v7"/></svg>
+            <span>2D</span>
+          </button>
+          <button class="mode-button is-active" type="button" data-mode="3d" role="tab">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 0v9m8-4.5-8 4.5-8-4.5M12 12v9"/></svg>
+            <span>3D</span>
+          </button>
+          <button class="mode-button" type="button" data-mode="sun" role="tab">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>
+            <span>Солнце</span>
+          </button>
+        </div>
+
+        <div class="sun-panel" id="sunPanel" hidden>
+          <div class="sun-panel-head">
+            <div class="sun-time">
+              <span class="sun-symbol">☀</span>
+              <div><strong id="timeValue">13:00</strong><small id="sunCaption">Солнце в квартире</small></div>
             </div>
+            <div class="date-switch" role="tablist" aria-label="Сезон">
+              <button type="button" data-season="winter">21 дек</button>
+              <button type="button" data-season="shoulder" class="is-active">21 мар</button>
+              <button type="button" data-season="summer">21 июн</button>
+            </div>
+            <div class="sun-position" id="sunPosition">Юг · 39°</div>
           </div>
-
-          <button id="resetViewButton" class="reset-view-button" type="button" aria-label="Сбросить ракурс">↺</button>
-          <div class="drag-hint" id="dragHint">Потяните мышью или пальцем, чтобы повернуть 3D-планировку</div>
-
-          <div class="compass-box" aria-label="Роза ветров и движение солнца">
-            <div class="compass-title">Роза ветров</div>
-            <div class="compass-wrap">
-              <svg viewBox="0 0 120 120" class="compass-svg" aria-hidden="true">
-                <circle cx="60" cy="60" r="33" class="compass-orbit"></circle>
-                <circle cx="60" cy="60" r="23" class="compass-inner"></circle>
-                <circle cx="60" cy="60" r="4" class="compass-center"></circle>
-                <path class="compass-needle" d="M60 18 L67 60 L60 52 L53 60 Z"></path>
-                <path class="compass-needle soft" d="M60 102 L53 60 L60 68 L67 60 Z"></path>
-                <path class="compass-cross" d="M60 10 V26 M60 94 V110 M10 60 H26 M94 60 H110"></path>
-              </svg>
-              <div class="compass-label north">С</div>
-              <div class="compass-label east">В</div>
-              <div class="compass-label south">Ю</div>
-              <div class="compass-label west">З</div>
-              <div id="sunDot" class="sun-dot"></div>
-            </div>
-            <div class="compass-meta">
-              <div id="compassTime">12:00</div>
-              <div id="compassText">Солнце по траектории</div>
-            </div>
+          <div class="sun-slider-row">
+            <span>06:00</span>
+            <input id="timeRange" type="range" min="360" max="1320" step="5" value="780" aria-label="Время суток" />
+            <span>22:00</span>
           </div>
         </div>
 
-        <button class="stage-arrow right" type="button" aria-label="Следующая квартира">›</button>
-      </div>
-
-      <div class="viewer-bottom-bar">
-        <div class="toolbar-row">
-          <div class="mode-switch" role="tablist" aria-label="Переключение режима просмотра">
-            <button class="mode-tab is-active" type="button" data-mode="3d">3D планировка</button>
-            <button class="mode-tab" type="button" data-mode="2d">На этаже</button>
-          </div>
-
-          <div class="toolbar-actions">
-            <label class="shadow-toggle">
-              <input id="shadowToggle" type="checkbox" checked />
-              <span>Показывать тени</span>
-            </label>
-            <div class="season-switch" role="tablist" aria-label="Переключение сезона">
-              <button class="season-button" type="button" data-season="winter">Зима</button>
-              <button class="season-button is-active" type="button" data-season="shoulder">Весна-осень</button>
-              <button class="season-button" type="button" data-season="summer">Лето</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="sun-controls" id="sunControls">
-          <div class="timeline-panel">
-            <div class="timeline-head">
-              <div class="timeline-meta">
-                <span class="sun-chip">☀</span>
-                <div>
-                  <strong id="timeValue">12:00</strong>
-                  <p id="seasonValue">Весна / осень</p>
-                </div>
-              </div>
-              <div class="timeline-status" id="sunStatus">Азимут 180° · юг · высота 45°</div>
-            </div>
-            <div class="timeline-row">
-              <span class="edge-time">12:00</span>
-              <div class="range-wrap">
-                <div class="range-sun">☀</div>
-                <input id="timeRange" type="range" min="720" max="1440" step="5" value="720" aria-label="Временная шкала" />
-              </div>
-              <span class="edge-time">00:00</span>
-            </div>
-          </div>
-        </div>
+        <div class="interaction-hint" id="interactionHint">Потяните, чтобы повернуть · колёсико — масштаб</div>
       </div>
     </section>
 
     <aside class="details-panel">
       <p class="apartment-type">1-комнатная квартира №2</p>
-      <div class="main-metric"><img class="area-glyphs" src="assets/area-guild.svg" alt="73.2 м²" /></div>
+      <div class="area-value"><img src="assets/area-guild.svg" alt="73.2 м²" /></div>
+      <button class="favorite-button" type="button">В избранное <i></i></button>
 
-      <div class="top-actions">
-        <span>В избранное</span>
-        <span class="bookmark-outline"></span>
-      </div>
-
-      <dl class="details-grid">
+      <dl class="specs">
         <div><dt>корпус</dt><dd>1</dd></div>
         <div><dt>секция</dt><dd>1</dd></div>
         <div><dt>этаж</dt><dd>2</dd></div>
@@ -126,25 +123,32 @@
       </dl>
 
       <div class="price-block">
-        <div class="price-main"><img class="price-glyphs" src="assets/price-guild.svg" alt="153 861 000 ₽" /></div>
-        <div class="price-sub">2 101 928 ₽ <small>цена за 1 м²</small></div>
+        <div class="price"><img src="assets/price-guild.svg" alt="153 861 000 ₽" /></div>
+        <div class="price-per-meter">2 101 928 ₽<small>цена за 1 м²</small></div>
       </div>
 
       <button class="book-button" type="button">Забронировать</button>
-
       <div class="secondary-actions">
-        <button type="button">⇩ Скачать .pdf</button>
+        <button type="button">↓ Скачать .pdf</button>
         <button type="button">✉ На e-mail</button>
-        <button type="button">⤴ Поделиться</button>
+        <button type="button">⌯ Поделиться</button>
       </div>
 
       <div class="panel-footer">
-        <p class="legal-note">В демо отображаются только внешние и внутренние стены и перегородки. Тени можно отключить отдельной галочкой. Роза ветров статична, вокруг неё перемещается солнце по текущему времени.</p>
-        <img class="aurix-footer" src="assets/aurix-logo.svg" alt="AURIX" />
+        <p>Демонстрационная визуализация. Положение солнца рассчитано по координатам объекта, дате, времени и ориентации квартиры.</p>
+        <img src="assets/aurix-logo.svg" alt="AURIX" />
       </div>
     </aside>
   </main>
 
-  <script src="app.js"></script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
