@@ -1,34 +1,15 @@
-const gallery = document.getElementById('gallery');
-const galleryViewport = document.getElementById('galleryViewport');
-const planImage = document.getElementById('planImage');
-const canvas = document.getElementById('sunCanvas');
+const canvas = document.getElementById('sceneCanvas');
 const ctx = canvas.getContext('2d');
-const fullscreenButton = document.getElementById('fullscreenButton');
-const favoriteButton = document.getElementById('favoriteButton');
-const shareButton = document.getElementById('shareButton');
-const dateInput = document.getElementById('dateInput');
+const floorView = document.getElementById('floorView');
 const timeRange = document.getElementById('timeRange');
 const timeValue = document.getElementById('timeValue');
-const playButton = document.getElementById('playButton');
+const seasonValue = document.getElementById('seasonValue');
 const sunStatus = document.getElementById('sunStatus');
-const sunAngles = document.getElementById('sunAngles');
-const viewTabs = [...document.querySelectorAll('.view-tab[data-view]')];
-const seasonButtons = [...document.querySelectorAll('.season-buttons button')];
-
-const sources = {
-  furnished: {
-    remote: 'https://imgs.etalongroup.ru/imgs/18500000000002189/42500000000303291/44000000002941969.png',
-    alt: 'Планировка квартиры №2 с мебелью'
-  },
-  empty: {
-    remote: 'https://imgs.etalongroup.ru/imgs/18500000000002189/42500000000303291/44000000002941839.png',
-    alt: 'Планировка квартиры №2 без мебели'
-  },
-  floor: {
-    remote: 'https://imgs.etalongroup.ru/imgs/18500000000002189/42500000000303291/44500000003012857.gif',
-    alt: 'Расположение квартиры №2 на этаже'
-  }
-};
+const seasonButtons = [...document.querySelectorAll('.season-button')];
+const modeTabs = [...document.querySelectorAll('.mode-tab')];
+const sunControls = document.getElementById('sunControls');
+const fullscreenButton = document.getElementById('fullscreenButton');
+const dragHint = document.getElementById('dragHint');
 
 const siteLocation = {
   latitude: 55.7047,
@@ -37,45 +18,60 @@ const siteLocation = {
   northOnPlan: 315
 };
 
-const state = {
-  mode: 'furnished',
-  playing: false,
-  timer: null
+const seasonConfig = {
+  winter: { label: 'Зимнее солнце', date: '2026-12-21' },
+  shoulder: { label: 'Весна / осень', date: '2026-03-21' },
+  summer: { label: 'Летнее солнце', date: '2026-06-21' }
 };
 
-const sunPlan = new Image();
-sunPlan.decoding = 'async';
-sunPlan.src = sources.furnished.remote;
-sunPlan.onload = renderSun;
-
-const floorPolygon = [
+const wallHeight = 118;
+const center = [401, 242];
+const outerPolygon = [
   [12, 30], [735, 30], [770, 52], [790, 100], [790, 410],
   [340, 410], [340, 470], [275, 410], [12, 410]
 ];
 
-const windows = [
-  { a: [40, 30], b: [225, 30], normal: [0, -1] },
-  { a: [285, 30], b: [475, 30], normal: [0, -1] },
-  { a: [535, 30], b: [720, 30], normal: [0, -1] },
-  { a: [770, 72], b: [790, 160], normal: [1, 0] },
-  { a: [790, 205], b: [790, 385], normal: [1, 0] }
+const walls = [
+  { a: [12, 30], b: [735, 30], thickness: 18, outer: true },
+  { a: [735, 30], b: [770, 52], thickness: 18, outer: true },
+  { a: [770, 52], b: [790, 100], thickness: 18, outer: true },
+  { a: [790, 100], b: [790, 410], thickness: 18, outer: true },
+  { a: [790, 410], b: [340, 410], thickness: 18, outer: true },
+  { a: [340, 410], b: [340, 470], thickness: 18, outer: true },
+  { a: [340, 470], b: [275, 410], thickness: 18, outer: true },
+  { a: [275, 410], b: [12, 410], thickness: 18, outer: true },
+  { a: [12, 410], b: [12, 30], thickness: 18, outer: true },
+
+  { a: [266, 30], b: [266, 225], thickness: 10, outer: false },
+  { a: [266, 245], b: [266, 410], thickness: 10, outer: false },
+  { a: [12, 243], b: [180, 243], thickness: 10, outer: false },
+  { a: [180, 243], b: [180, 410], thickness: 10, outer: false },
+  { a: [340, 243], b: [510, 243], thickness: 10, outer: false },
+  { a: [380, 243], b: [380, 410], thickness: 10, outer: false },
+  { a: [510, 243], b: [510, 410], thickness: 10, outer: false },
+  { a: [340, 410], b: [340, 282], thickness: 10, outer: false },
+  { a: [275, 410], b: [275, 302], thickness: 10, outer: false }
 ];
 
-const wallSegments = [
-  [[12, 30], [12, 410]],
-  [[12, 410], [275, 410]],
-  [[340, 410], [790, 410]],
-  [[790, 165], [790, 410]],
-  [[265, 30], [265, 225]],
-  [[265, 245], [265, 410]],
-  [[12, 243], [180, 243]],
-  [[180, 243], [180, 410]],
-  [[340, 243], [510, 243]],
-  [[380, 243], [380, 410]],
-  [[510, 243], [510, 410]],
-  [[340, 410], [340, 280]],
-  [[275, 410], [275, 300]]
+const windows = [
+  { a: [42, 30], b: [226, 30], inward: [0, 1], tangent: [1, 0], wallType: 'top' },
+  { a: [288, 30], b: [474, 30], inward: [0, 1], tangent: [1, 0], wallType: 'top' },
+  { a: [536, 30], b: [720, 30], inward: [0, 1], tangent: [1, 0], wallType: 'top' },
+  { a: [790, 208], b: [790, 386], inward: [-1, 0], tangent: [0, 1], wallType: 'right' }
 ];
+
+const state = {
+  mode: '3d',
+  season: 'summer',
+  minutes: 720,
+  yaw: -0.7,
+  pitch: -0.88,
+  dragging: false,
+  pointerId: null,
+  lastX: 0,
+  lastY: 0,
+  hintShown: true
+};
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -89,9 +85,48 @@ function radToDeg(value) {
   return value * 180 / Math.PI;
 }
 
+function normalize(vector) {
+  const length = Math.hypot(vector[0], vector[1]) || 1;
+  return [vector[0] / length, vector[1] / length];
+}
+
+function add(a, b) {
+  return [a[0] + b[0], a[1] + b[1]];
+}
+
+function scale(vector, amount) {
+  return [vector[0] * amount, vector[1] * amount];
+}
+
+function midpoint(a, b) {
+  return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+}
+
+function perpendicular(vector) {
+  return [-vector[1], vector[0]];
+}
+
+function formatTime(totalMinutes) {
+  const value = totalMinutes % 1440;
+  const hours = Math.floor(value / 60) % 24;
+  const minutes = value % 60;
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+}
+
+function directionLabel(azimuth) {
+  const directions = ['север', 'северо-восток', 'восток', 'юго-восток', 'юг', 'юго-запад', 'запад', 'северо-запад'];
+  return directions[Math.round(azimuth / 45) % 8];
+}
+
 function dayOfYear(date) {
   const start = new Date(Date.UTC(date.getUTCFullYear(), 0, 0));
   return Math.floor((date - start) / 86400000);
+}
+
+function currentDate() {
+  const config = seasonConfig[state.season];
+  const [year, month, day] = config.date.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day, 12));
 }
 
 function solarPosition(date, minutes) {
@@ -122,6 +157,7 @@ function solarPosition(date, minutes) {
     -1,
     1
   );
+
   const zenith = Math.acos(cosZenith);
   const altitude = 90 - radToDeg(zenith);
   const azimuth = (radToDeg(Math.atan2(
@@ -132,338 +168,375 @@ function solarPosition(date, minutes) {
   return { altitude, azimuth };
 }
 
-function directionLabel(azimuth) {
-  const directions = ['север', 'северо-восток', 'восток', 'юго-восток', 'юг', 'юго-запад', 'запад', 'северо-запад'];
-  return directions[Math.round(azimuth / 45) % 8];
-}
-
-function currentDate() {
-  const [year, month, day] = dateInput.value.split('-').map(Number);
-  return new Date(Date.UTC(year, month - 1, day, 12));
-}
-
-function formatTime(totalMinutes) {
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-}
-
 function planSunDirection(azimuth) {
   const angle = degToRad(siteLocation.northOnPlan + azimuth);
-  return [Math.sin(angle), -Math.cos(angle)];
+  return normalize([Math.sin(angle), -Math.cos(angle)]);
 }
 
-function getProjection(width, height) {
-  const usableW = Math.max(440, width - 260);
-  const usableH = Math.max(300, height - 215);
-  const scale = Math.min(usableW / 800, usableH / 410);
-  const a = scale;
-  const b = scale * 0.055;
-  const c = -scale * 0.15;
-  const d = scale * 0.68;
-  const centerX = a * 400 + c * 241;
-  const centerY = b * 400 + d * 241;
+function getCanvasMetrics() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.max(1, Math.round(rect.width * dpr));
+  canvas.height = Math.max(1, Math.round(rect.height * dpr));
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { width: rect.width, height: rect.height };
+}
+
+function transformPoint(point, z, yaw = state.yaw, pitch = state.pitch) {
+  const dx = point[0] - center[0];
+  const dy = point[1] - center[1];
+  const cosYaw = Math.cos(yaw);
+  const sinYaw = Math.sin(yaw);
+  const cosPitch = Math.cos(pitch);
+  const sinPitch = Math.sin(pitch);
+
+  const x1 = dx * cosYaw - dy * sinYaw;
+  const y1 = dx * sinYaw + dy * cosYaw;
+  const y2 = y1 * cosPitch - z * sinPitch;
+  const z2 = y1 * sinPitch + z * cosPitch;
+
+  return { x: x1, y: y2, depth: z2 };
+}
+
+function project(point, metrics, z = 0) {
+  const t = transformPoint(point, z);
+  const sceneScale = Math.min((metrics.width - 120) / 940, (metrics.height - 100) / 780);
+  const cameraDistance = 1250;
+  const perspective = cameraDistance / (cameraDistance - t.depth);
   return {
-    a, b, c, d,
-    e: width / 2 - centerX,
-    f: height / 2 - centerY - 32,
-    wallHeight: clamp(42 * scale, 38, 74)
+    x: metrics.width / 2 + t.x * sceneScale * perspective,
+    y: metrics.height / 2 + t.y * sceneScale * perspective + 18,
+    depth: t.depth
   };
 }
 
-function project(point, projection, z = 0) {
-  const [x, y] = point;
-  return {
-    x: projection.a * x + projection.c * y + projection.e,
-    y: projection.b * x + projection.d * y + projection.f - z
-  };
+function polygonDepth(points, z = 0) {
+  const sum = points.reduce((total, point) => total + transformPoint(point, z).depth, 0);
+  return sum / points.length;
 }
 
-function drawPolygon(points) {
-  ctx.beginPath();
-  points.forEach(([x, y], index) => index ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
-  ctx.closePath();
+function prismFromSegment(segment) {
+  const direction = normalize([segment.b[0] - segment.a[0], segment.b[1] - segment.a[1]]);
+  const offset = scale(perpendicular(direction), segment.thickness / 2);
+  const p1 = add(segment.a, offset);
+  const p2 = add(segment.b, offset);
+  const p3 = add(segment.b, scale(offset, -1));
+  const p4 = add(segment.a, scale(offset, -1));
+  return { bottom: [p1, p2, p3, p4], top: [p1, p2, p3, p4] };
 }
 
-function drawGroundShadow(projection) {
-  const projected = floorPolygon.map((point) => project(point, projection));
+function makeWallFaces(segment) {
+  const prism = prismFromSegment(segment);
+  const baseColor = segment.outer ? [244, 244, 244] : [250, 250, 250];
+  const topColor = segment.outer ? 'rgba(255,255,255,.22)' : 'rgba(255,255,255,.18)';
+
+  return [
+    {
+      points: [prism.bottom[0], prism.bottom[1], prism.top[1], prism.top[0]],
+      zs: [0, 0, wallHeight, wallHeight],
+      fill: shadeColor(baseColor, .94),
+      stroke: 'rgba(160,160,160,.55)'
+    },
+    {
+      points: [prism.bottom[1], prism.bottom[2], prism.top[2], prism.top[1]],
+      zs: [0, 0, wallHeight, wallHeight],
+      fill: shadeColor(baseColor, .86),
+      stroke: 'rgba(160,160,160,.44)'
+    },
+    {
+      points: [prism.bottom[2], prism.bottom[3], prism.top[3], prism.top[2]],
+      zs: [0, 0, wallHeight, wallHeight],
+      fill: shadeColor(baseColor, .8),
+      stroke: 'rgba(160,160,160,.34)'
+    },
+    {
+      points: prism.top,
+      zs: [wallHeight, wallHeight, wallHeight, wallHeight],
+      fill: topColor,
+      stroke: 'rgba(195,195,195,.3)'
+    }
+  ];
+}
+
+function shadeColor(rgb, factor) {
+  return `rgb(${rgb.map((value) => Math.round(value * factor)).join(',')})`;
+}
+
+function drawProjectedPolygon(points, zs, fill, stroke, metrics, shadow = null) {
+  const projected = points.map((point, index) => project(point, metrics, zs[index]));
   ctx.save();
-  ctx.filter = 'blur(24px)';
-  ctx.fillStyle = 'rgba(29, 21, 42, .17)';
-  ctx.beginPath();
-  projected.forEach((p, i) => i ? ctx.lineTo(p.x + 12, p.y + 32) : ctx.moveTo(p.x + 12, p.y + 32));
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
-
-function clipFloor() {
-  drawPolygon(floorPolygon);
-  ctx.clip();
-}
-
-function drawPlanImage() {
-  if (sunPlan.naturalWidth >= 900) {
-    ctx.drawImage(sunPlan, 90, 250, 820, 500, 0, 0, 800, 482.7);
-  } else {
-    ctx.drawImage(sunPlan, 0, 0, sunPlan.naturalWidth, sunPlan.naturalHeight, 0, 0, 800, 482.7);
+  if (shadow) {
+    ctx.shadowBlur = shadow.blur;
+    ctx.shadowColor = shadow.color;
   }
-}
-
-function drawLightBeams(sun, sunDir) {
-  const altitude = Math.max(2, sun.altitude);
-  const ray = [-sunDir[0], -sunDir[1]];
-  const length = clamp(95 + 155 / Math.tan(degToRad(altitude)), 100, 430);
-  const intensity = clamp((sun.altitude + 2) / 42, 0.12, 0.65);
-
-  windows.forEach((window) => {
-    const exposure = window.normal[0] * sunDir[0] + window.normal[1] * sunDir[1];
-    if (exposure <= 0.02 || sun.altitude <= 0) return;
-
-    const shift = [ray[0] * length, ray[1] * length];
-    const polygon = [
-      window.a,
-      window.b,
-      [window.b[0] + shift[0], window.b[1] + shift[1]],
-      [window.a[0] + shift[0], window.a[1] + shift[1]]
-    ];
-
-    const midX = (window.a[0] + window.b[0]) / 2;
-    const midY = (window.a[1] + window.b[1]) / 2;
-    const gradient = ctx.createLinearGradient(midX, midY, midX + shift[0], midY + shift[1]);
-    gradient.addColorStop(0, `rgba(255, 220, 137, ${intensity * exposure})`);
-    gradient.addColorStop(.45, `rgba(255, 214, 120, ${intensity * exposure * .5})`);
-    gradient.addColorStop(1, 'rgba(255, 232, 180, 0)');
-    drawPolygon(polygon);
-    ctx.fillStyle = gradient;
-    ctx.fill();
+  ctx.beginPath();
+  projected.forEach((p, index) => {
+    if (index === 0) ctx.moveTo(p.x, p.y);
+    else ctx.lineTo(p.x, p.y);
   });
-}
-
-function drawFloorShadows(sun, sunDir) {
-  if (sun.altitude <= 0) return;
-  const shadowDirection = [-sunDir[0], -sunDir[1]];
-  const length = clamp(58 / Math.tan(degToRad(Math.max(4, sun.altitude))), 9, 115);
-  ctx.fillStyle = `rgba(39, 26, 55, ${clamp(.32 - sun.altitude / 250, .11, .27)})`;
-
-  wallSegments.forEach(([a, b]) => {
-    const offset = [shadowDirection[0] * length, shadowDirection[1] * length];
-    drawPolygon([
-      a,
-      b,
-      [b[0] + offset[0], b[1] + offset[1]],
-      [a[0] + offset[0], a[1] + offset[1]]
-    ]);
+  ctx.closePath();
+  if (fill) {
+    ctx.fillStyle = fill;
     ctx.fill();
-  });
-}
-
-function drawWallFaces(projection, sunDir, sun) {
-  const sortedWalls = [...wallSegments].sort((left, right) => {
-    const ly = (left[0][1] + left[1][1]) / 2;
-    const ry = (right[0][1] + right[1][1]) / 2;
-    return ly - ry;
-  });
-
-  sortedWalls.forEach(([a, b]) => {
-    const p1 = project(a, projection);
-    const p2 = project(b, projection);
-    const p1Top = project(a, projection, projection.wallHeight);
-    const p2Top = project(b, projection, projection.wallHeight);
-    const dx = b[0] - a[0];
-    const dy = b[1] - a[1];
-    const length = Math.hypot(dx, dy) || 1;
-    const normal = [-dy / length, dx / length];
-    const facing = normal[0] * sunDir[0] + normal[1] * sunDir[1];
-    const brightness = sun.altitude > 0 ? clamp(.6 + facing * .17, .42, .78) : .36;
-    const base = [42, 23, 76];
-    const rgb = base.map((value) => Math.round(value + (255 - value) * (brightness - .39) * .22));
-
-    ctx.beginPath();
-    ctx.moveTo(p1.x, p1.y);
-    ctx.lineTo(p2.x, p2.y);
-    ctx.lineTo(p2Top.x, p2Top.y);
-    ctx.lineTo(p1Top.x, p1Top.y);
-    ctx.closePath();
-    ctx.fillStyle = `rgb(${rgb.join(',')})`;
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.moveTo(p1Top.x, p1Top.y);
-    ctx.lineTo(p2Top.x, p2Top.y);
-    ctx.strokeStyle = 'rgba(255,255,255,.26)';
+  }
+  if (stroke) {
+    ctx.strokeStyle = stroke;
     ctx.lineWidth = 1;
     ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function pointInPolygon(point, polygon) {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i][0];
+    const yi = polygon[i][1];
+    const xj = polygon[j][0];
+    const yj = polygon[j][1];
+    const intersect = ((yi > point[1]) !== (yj > point[1])) &&
+      (point[0] < (xj - xi) * (point[1] - yi) / (yj - yi + 0.00001) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+function createEllipsePolygon(centerPoint, majorAxis, minorAxis, radiusA, radiusB, steps = 26) {
+  const major = normalize(majorAxis);
+  const minor = normalize(minorAxis);
+  const points = [];
+  for (let i = 0; i < steps; i += 1) {
+    const angle = (Math.PI * 2 * i) / steps;
+    const point = add(
+      add(centerPoint, scale(major, Math.cos(angle) * radiusA)),
+      scale(minor, Math.sin(angle) * radiusB)
+    );
+    points.push(point);
+  }
+  return points;
+}
+
+function drawLightSpots(sun, metrics) {
+  if (sun.altitude <= 0) return;
+  const sunDir = planSunDirection(sun.azimuth);
+  const incoming = scale(sunDir, -1);
+  const altitude = clamp(sun.altitude, 5, 75);
+  const distance = clamp(36 + 205 / Math.tan(degToRad(altitude)), 48, 210);
+  const floorRadiusA = clamp(110 - altitude * 0.8, 36, 96);
+  const floorRadiusB = clamp(34 + altitude * 0.18, 24, 48);
+  const baseIntensity = clamp(0.16 + sun.altitude / 200, 0.16, 0.34);
+
+  windows.forEach((window) => {
+    const exposure = incoming[0] * window.inward[0] + incoming[1] * window.inward[1];
+    if (exposure <= 0.12) return;
+
+    const start = midpoint(window.a, window.b);
+    const spotCenter = add(start, scale(window.inward, 22 + distance * 0.1));
+    const floorCenter = add(spotCenter, scale(incoming, distance * 0.56));
+
+    if (pointInPolygon(floorCenter, outerPolygon)) {
+      const ellipse = createEllipsePolygon(
+        floorCenter,
+        incoming,
+        perpendicular(incoming),
+        floorRadiusA,
+        floorRadiusB
+      );
+      drawProjectedPolygon(
+        ellipse,
+        new Array(ellipse.length).fill(2),
+        `rgba(245, 207, 125, ${baseIntensity * exposure})`,
+        null,
+        metrics,
+        { blur: 18, color: 'rgba(243, 200, 109, 0.38)' }
+      );
+    }
+
+    const tangentInfluence = incoming[0] * window.tangent[0] + incoming[1] * window.tangent[1];
+    const slide = tangentInfluence * 46;
+    const patchWidth = 32;
+    const zBottom = 18;
+    const zTop = clamp(66 + sun.altitude * 0.45, 78, 102);
+
+    let wallPatch;
+    if (window.wallType === 'top') {
+      const centerX = clamp(start[0] + slide, Math.min(window.a[0], window.b[0]) + 22, Math.max(window.a[0], window.b[0]) - 22);
+      wallPatch = {
+        points: [[centerX - patchWidth, 38], [centerX + patchWidth, 38], [centerX + patchWidth, 38], [centerX - patchWidth, 38]],
+        zs: [zBottom, zBottom, zTop, zTop]
+      };
+    } else {
+      const centerY = clamp(start[1] + slide, Math.min(window.a[1], window.b[1]) + 22, Math.max(window.a[1], window.b[1]) - 22);
+      wallPatch = {
+        points: [[782, centerY - patchWidth], [782, centerY + patchWidth], [782, centerY + patchWidth], [782, centerY - patchWidth]],
+        zs: [zBottom, zBottom, zTop, zTop]
+      };
+    }
+
+    drawProjectedPolygon(
+      wallPatch.points,
+      wallPatch.zs,
+      `rgba(248, 221, 156, ${0.24 * exposure})`,
+      null,
+      metrics,
+      { blur: 12, color: 'rgba(243, 200, 109, 0.42)' }
+    );
   });
 }
 
-function drawSunMarker(width, sun) {
-  const progress = clamp((Number(timeRange.value) - 360) / 960, 0, 1);
-  const x = width * (.15 + progress * .7);
-  const y = 58 + (1 - clamp(sun.altitude / 60, 0, 1)) * 52;
+function drawGroundShadow(metrics) {
+  const projected = outerPolygon.map((point) => project(point, metrics, 0));
   ctx.save();
-  ctx.shadowColor = 'rgba(239, 180, 78, .8)';
-  ctx.shadowBlur = 26;
-  ctx.fillStyle = sun.altitude > 0 ? '#efb44e' : '#aaa';
+  ctx.filter = 'blur(22px)';
+  ctx.fillStyle = 'rgba(0,0,0,.10)';
   ctx.beginPath();
-  ctx.arc(x, y, 7, 0, Math.PI * 2);
+  projected.forEach((point, index) => {
+    if (index === 0) ctx.moveTo(point.x + 16, point.y + 18);
+    else ctx.lineTo(point.x + 16, point.y + 18);
+  });
+  ctx.closePath();
   ctx.fill();
   ctx.restore();
 }
 
-function renderSun() {
-  if (state.mode !== 'sun') return;
-  const rect = canvas.getBoundingClientRect();
-  const width = Math.max(1, rect.width);
-  const height = Math.max(1, rect.height);
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+function drawScene() {
+  const metrics = getCanvasMetrics();
+  ctx.clearRect(0, 0, metrics.width, metrics.height);
 
-  canvas.width = Math.round(width * dpr);
-  canvas.height = Math.round(height * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, width, height);
+  if (state.mode !== '3d') return;
 
-  if (!sunPlan.complete || !sunPlan.naturalWidth) return;
-
-  const minutes = Number(timeRange.value);
-  const sun = solarPosition(currentDate(), minutes);
-  const sunDir = planSunDirection(sun.azimuth);
-  const projection = getProjection(width, height);
-
-  const background = ctx.createLinearGradient(0, 0, 0, height);
-  background.addColorStop(0, '#ffffff');
-  background.addColorStop(1, '#f7f6f4');
+  const date = currentDate();
+  const sun = solarPosition(date, state.minutes);
+  const background = ctx.createLinearGradient(0, 0, 0, metrics.height);
+  const daylight = clamp((sun.altitude + 10) / 75, 0.12, 1);
+  background.addColorStop(0, `rgba(255,255,255,${0.88 * daylight})`);
+  background.addColorStop(1, `rgba(214,214,214,${0.72 + (1 - daylight) * 0.24})`);
   ctx.fillStyle = background;
-  ctx.fillRect(0, 0, width, height);
+  ctx.fillRect(0, 0, metrics.width, metrics.height);
+  drawGroundShadow(metrics);
 
-  drawGroundShadow(projection);
+  const faces = [];
+  faces.push({
+    points: outerPolygon,
+    zs: new Array(outerPolygon.length).fill(0),
+    fill: 'rgba(255,255,255,0.22)',
+    stroke: 'rgba(160,160,160,.2)',
+    depth: polygonDepth(outerPolygon, 0)
+  });
 
-  ctx.save();
-  ctx.setTransform(
-    dpr * projection.a,
-    dpr * projection.b,
-    dpr * projection.c,
-    dpr * projection.d,
-    dpr * projection.e,
-    dpr * projection.f
-  );
-  drawPlanImage();
+  faces.push({
+    points: outerPolygon,
+    zs: new Array(outerPolygon.length).fill(wallHeight),
+    fill: 'rgba(255,255,255,0.08)',
+    stroke: 'rgba(220,220,220,.18)',
+    depth: polygonDepth(outerPolygon, wallHeight)
+  });
 
-  ctx.save();
-  clipFloor();
-  const nightAlpha = clamp((8 - sun.altitude) / 22, 0, .58);
-  if (nightAlpha > 0) {
-    ctx.fillStyle = `rgba(48, 48, 67, ${nightAlpha})`;
-    ctx.fillRect(-100, -100, 1000, 800);
-  }
-  drawLightBeams(sun, sunDir);
-  drawFloorShadows(sun, sunDir);
-  ctx.restore();
-  ctx.restore();
+  walls.forEach((wall) => {
+    makeWallFaces(wall).forEach((face) => {
+      const depth = face.points.reduce((total, point, index) => total + transformPoint(point, face.zs[index]).depth, 0) / face.points.length;
+      faces.push({ ...face, depth });
+    });
+  });
 
-  drawWallFaces(projection, sunDir, sun);
-  drawSunMarker(width, sun);
+  faces.sort((a, b) => a.depth - b.depth);
+  faces.forEach((face) => drawProjectedPolygon(face.points, face.zs, face.fill, face.stroke, metrics));
+  drawLightSpots(sun, metrics);
+  updateReadout(sun);
+}
 
-  const roundedAltitude = Math.round(sun.altitude);
+function updateReadout(sun) {
+  timeValue.textContent = formatTime(state.minutes);
+  seasonValue.textContent = seasonConfig[state.season].label;
+
   if (sun.altitude > 0) {
-    sunStatus.textContent = 'Солнце над горизонтом';
-    sunAngles.textContent = `высота ${roundedAltitude}° · ${directionLabel(sun.azimuth)}`;
+    sunStatus.textContent = `Азимут ${Math.round(sun.azimuth)}° · ${directionLabel(sun.azimuth)} · высота ${Math.round(sun.altitude)}°`;
   } else {
-    sunStatus.textContent = 'Солнце за горизонтом';
-    sunAngles.textContent = `ночное освещение · ${directionLabel(sun.azimuth)}`;
+    sunStatus.textContent = `Солнце за горизонтом · ${directionLabel(sun.azimuth)} · высота ${Math.round(sun.altitude)}°`;
   }
-  timeValue.textContent = formatTime(minutes);
 }
 
-function setImageSource(view) {
-  const source = sources[view];
-  if (!source) return;
-  planImage.alt = source.alt;
-  planImage.src = source.remote;
-}
-
-function stopPlayback() {
-  state.playing = false;
-  playButton.classList.remove('is-playing');
-  if (state.timer) window.clearInterval(state.timer);
-  state.timer = null;
+function render() {
+  floorView.hidden = state.mode !== '2d';
+  canvas.style.opacity = state.mode === '3d' ? '1' : '0';
+  sunControls.hidden = state.mode !== '3d';
+  dragHint.style.opacity = state.mode === '3d' && state.hintShown ? '1' : '0';
+  drawScene();
 }
 
 function setMode(mode) {
-  if (!['furnished', 'empty', 'floor', 'sun'].includes(mode)) return;
   state.mode = mode;
-  gallery.dataset.mode = mode;
-  viewTabs.forEach((button) => button.classList.toggle('is-active', button.dataset.view === mode));
+  modeTabs.forEach((button) => button.classList.toggle('is-active', button.dataset.mode === mode));
+  render();
+}
 
-  if (mode === 'sun') {
-    requestAnimationFrame(renderSun);
+function setSeason(season) {
+  state.season = season;
+  seasonButtons.forEach((button) => button.classList.toggle('is-active', button.dataset.season === season));
+  render();
+}
+
+function handlePointerDown(event) {
+  if (state.mode !== '3d') return;
+  state.dragging = true;
+  state.pointerId = event.pointerId;
+  state.lastX = event.clientX;
+  state.lastY = event.clientY;
+  state.hintShown = false;
+  dragHint.style.opacity = '0';
+  canvas.setPointerCapture(event.pointerId);
+}
+
+function handlePointerMove(event) {
+  if (!state.dragging || event.pointerId !== state.pointerId) return;
+  const dx = event.clientX - state.lastX;
+  const dy = event.clientY - state.lastY;
+  state.lastX = event.clientX;
+  state.lastY = event.clientY;
+  state.yaw += dx * 0.0085;
+  state.pitch = clamp(state.pitch + dy * 0.0035, -1.18, -0.52);
+  render();
+}
+
+function handlePointerUp(event) {
+  if (event.pointerId !== state.pointerId) return;
+  state.dragging = false;
+  canvas.releasePointerCapture(event.pointerId);
+  state.pointerId = null;
+}
+
+function toggleFullscreen() {
+  const target = document.querySelector('.stage-center');
+  if (!document.fullscreenElement) {
+    target.requestFullscreen?.();
   } else {
-    stopPlayback();
-    setImageSource(mode);
+    document.exitFullscreen?.();
   }
 }
 
-function setDate(value) {
-  dateInput.value = value;
-  seasonButtons.forEach((button) => button.classList.toggle('is-active', button.dataset.date === value));
-  renderSun();
-}
-
-viewTabs.forEach((button) => button.addEventListener('click', () => setMode(button.dataset.view)));
-seasonButtons.forEach((button) => button.addEventListener('click', () => setDate(button.dataset.date)));
-dateInput.addEventListener('input', () => {
-  seasonButtons.forEach((button) => button.classList.toggle('is-active', button.dataset.date === dateInput.value));
-  renderSun();
-});
-timeRange.addEventListener('input', renderSun);
-
-playButton.addEventListener('click', () => {
-  if (state.playing) {
-    stopPlayback();
-    return;
-  }
-  state.playing = true;
-  playButton.classList.add('is-playing');
-  state.timer = window.setInterval(() => {
-    let next = Number(timeRange.value) + 10;
-    if (next > Number(timeRange.max)) next = Number(timeRange.min);
-    timeRange.value = String(next);
-    renderSun();
-  }, 90);
+modeTabs.forEach((button) => {
+  button.addEventListener('click', () => setMode(button.dataset.mode));
 });
 
-fullscreenButton.addEventListener('click', async () => {
-  try {
-    if (!document.fullscreenElement) await galleryViewport.requestFullscreen();
-    else await document.exitFullscreen();
-  } catch (error) {
-    console.warn('Fullscreen is unavailable', error);
-  }
+seasonButtons.forEach((button) => {
+  button.addEventListener('click', () => setSeason(button.dataset.season));
 });
 
-favoriteButton.addEventListener('click', () => {
-  const next = favoriteButton.getAttribute('aria-pressed') !== 'true';
-  favoriteButton.setAttribute('aria-pressed', String(next));
-  favoriteButton.querySelector('span').textContent = next ? 'В избранном' : 'В избранное';
+timeRange.addEventListener('input', () => {
+  state.minutes = Number(timeRange.value);
+  render();
 });
 
-shareButton.addEventListener('click', async () => {
-  const data = { title: document.title, text: 'Квартира №2 в Резиденции Омега', url: window.location.href };
-  try {
-    if (navigator.share) await navigator.share(data);
-    else {
-      await navigator.clipboard.writeText(window.location.href);
-      const label = shareButton.lastChild;
-      const original = label.textContent;
-      label.textContent = 'Ссылка скопирована';
-      window.setTimeout(() => { label.textContent = original; }, 1600);
-    }
-  } catch (error) {
-    if (error?.name !== 'AbortError') console.warn('Share failed', error);
-  }
-});
+canvas.addEventListener('pointerdown', handlePointerDown);
+canvas.addEventListener('pointermove', handlePointerMove);
+canvas.addEventListener('pointerup', handlePointerUp);
+canvas.addEventListener('pointercancel', handlePointerUp);
+canvas.addEventListener('pointerleave', handlePointerUp);
+fullscreenButton.addEventListener('click', toggleFullscreen);
+window.addEventListener('resize', render);
 
-window.addEventListener('resize', () => requestAnimationFrame(renderSun));
-document.addEventListener('fullscreenchange', () => requestAnimationFrame(renderSun));
+document.addEventListener('fullscreenchange', render);
 
-setMode('furnished');
+setSeason('summer');
+setMode('3d');
+render();
