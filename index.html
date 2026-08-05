@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#271745" />
+  <title>Солнечный свет — квартира №2</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#" aria-label="Aurix">AURIX</a>
+    <nav class="top-nav" aria-label="Основная навигация">
+      <a href="#viewer">Выбрать недвижимость</a>
+      <a href="#about">Проекты</a>
+      <a href="#about">Контакты</a>
+    </nav>
+    <button class="outline-button" type="button">Оставить запрос</button>
+  </header>
+
+  <main>
+    <section class="hero" id="viewer">
+      <div class="breadcrumbs">Главная / Резиденция Омега / Квартира №2</div>
+      <div class="hero-heading">
+        <div>
+          <p class="eyebrow">Резиденция Омега</p>
+          <h1>1-комнатная квартира №2</h1>
+        </div>
+        <div class="hero-meta">
+          <span>73,2 м²</span>
+          <span>2 этаж</span>
+          <span>1 комната</span>
+        </div>
+      </div>
+
+      <div class="apartment-layout">
+        <aside class="apartment-card">
+          <div class="card-topline">
+            <span>Квартира №2</span>
+            <span class="status">в продаже</span>
+          </div>
+
+          <div class="price">153,9 млн ₽</div>
+          <div class="price-note">2 101 928 ₽ за м²</div>
+
+          <dl class="specs">
+            <div><dt>Корпус</dt><dd>1</dd></div>
+            <div><dt>Секция</dt><dd>1</dd></div>
+            <div><dt>Этаж</dt><dd>2 из 9</dd></div>
+            <div><dt>Высота потолка</dt><dd>3,22 м</dd></div>
+          </dl>
+
+          <button class="primary-button" type="button">Забронировать</button>
+          <button class="text-button" type="button">Скачать PDF</button>
+
+          <p class="demo-note">Демонстрационная визуализация. Окружающая застройка и выступающие элементы фасада пока не учитываются.</p>
+        </aside>
+
+        <section class="viewer-card" aria-label="Интерактивная планировка">
+          <div class="viewer-tabs" role="tablist">
+            <button class="tab" type="button" data-view="plan">Планировка</button>
+            <button class="tab is-active" type="button" data-view="sun">Солнечный свет</button>
+            <button class="tab is-disabled" type="button" aria-disabled="true">Вид из окон <small>скоро</small></button>
+          </div>
+
+          <div class="viewer-stage" data-mode="sun">
+            <canvas id="sunCanvas" aria-label="Модель движения солнечного света по квартире"></canvas>
+            <img class="flat-plan" src="assets/plan.svg" alt="Планировка квартиры №2" />
+
+            <div class="compass-card" aria-hidden="true">
+              <img src="assets/sun-scheme.svg" alt="" />
+              <span>ориентация квартиры</span>
+            </div>
+
+            <div class="sun-readout" aria-live="polite">
+              <span class="sun-dot"></span>
+              <strong id="sunStatus">Солнце над горизонтом</strong>
+              <span id="sunAngles">высота 38° · юго-запад</span>
+            </div>
+          </div>
+
+          <div class="controls" id="sunControls">
+            <div class="control-row date-row">
+              <label for="dateInput">Дата</label>
+              <input id="dateInput" type="date" value="2026-06-21" min="2026-01-01" max="2026-12-31" />
+              <div class="season-buttons" aria-label="Быстрый выбор сезона">
+                <button type="button" data-date="2026-03-21">Весна</button>
+                <button type="button" data-date="2026-06-21" class="is-active">Лето</button>
+                <button type="button" data-date="2026-09-23">Осень</button>
+                <button type="button" data-date="2026-12-21">Зима</button>
+              </div>
+            </div>
+
+            <div class="control-row time-row">
+              <button class="play-button" id="playButton" type="button" aria-label="Запустить движение солнца">
+                <span class="play-icon">▶</span>
+              </button>
+              <div class="range-wrap">
+                <div class="time-labels"><span>06:00</span><strong id="timeValue">09:30</strong><span>22:00</span></div>
+                <input id="timeRange" type="range" min="360" max="1320" step="5" value="570" />
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="about" id="about">
+      <p class="eyebrow">Как работает демо</p>
+      <h2>Свет рассчитывается для Москвы по выбранным дате и времени</h2>
+      <div class="about-grid">
+        <p>Положение солнца меняет направление лучей, длину теней и яркость помещений. Камера зафиксирована, поэтому пользователь всегда сохраняет ориентацию в квартире.</p>
+        <p>Для итоговой версии к расчёту можно подключить точную геометрию фасада, соседние корпуса и отдельные настройки для каждой квартиры.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>AURIX © 2026</span>
+    <span>Интерактивная демо-версия</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
