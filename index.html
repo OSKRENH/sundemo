@@ -9,21 +9,12 @@
 </head>
 <body>
 <header class="site-header">
-  <img src="brand/wordmark-purple.svg" alt="AURIX" width="112" height="29">
-</header>
-  <nav class="viewer-nav" aria-label="Управление просмотрщиком">
+  <nav class="viewer-nav" aria-label="Навигация по квартирам и сервис">
     <div class="navrow">
       <a class="back" id="back" href="catalog.html">Все планировки</a>
       <div class="flip" id="flip" hidden=""><a id="prevB" href="index.html" aria-label="Предыдущая квартира" title="Предыдущая квартира"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"></path></svg></a><span id="flipPos"></span><a id="nextB" href="index.html" aria-label="Следующая квартира" title="Следующая квартира"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></a></div>
     </div>
-  <div class="viewer-modes">
-    <div class="seg" role="group" aria-label="Вид">
-      <button type="button" data-view="3d" aria-pressed="true">3D</button>
-      <button type="button" data-view="top" aria-pressed="false">Сверху</button>
-      <button type="button" data-view="plan" aria-pressed="false">План</button>
-    </div>
-    <div class="seg" id="seasons" role="group" aria-label="Сезон"></div>
-  </div>
+    <img src="brand/wordmark-purple.svg" alt="AURIX" width="112" height="29">
     <div class="tools" id="tools">
       <button type="button" class="tool" id="svcB" aria-expanded="false">Сервис</button>
       <div class="pop card svc" id="svcPop" role="menu" aria-label="Сервис" hidden="">
@@ -50,6 +41,7 @@
 
     </div>
   </nav>
+</header>
 <main class="workspace">
   <aside class="apartment-panel" id="apartmentPanel" aria-label="Карточка квартиры">
     <img class="project-logo" src="brand/project-Residence_Omega-purple.svg" alt="Резиденции Омега" width="392" height="158">
@@ -71,7 +63,6 @@
     </div>
     <footer class="sidebar-footer">
       <div class="facade" id="facade" hidden="" aria-label="Этаж квартиры на фасаде"><svg id="facSvg" viewBox="0 0 100 100"></svg><span id="facCap"></span></div>
-      <img src="brand/wordmark-purple.svg" alt="AURIX" width="104" height="27">
     </footer>
   </aside>
   <div class="sun" id="sun" aria-label="Инсоляция квартиры">
@@ -80,16 +71,19 @@
   <div class="labels" id="labels"></div>
   <div class="plan2d" id="plan2d" hidden=""></div>
     <a class="credit" href="https://photoreal3d.ru/" target="_blank" rel="noopener"><span>Разработано</span><img src="brand/pr3d-logo.png" alt="Photoreal3d" width="42" height="26"></a>
-  <div class="ui hint" id="hint">Потяните, чтобы повернуть · колёсико — масштаб</div>
-  <div class="ui time card" id="time">
-    <div class="row">
-      <button class="play" id="play" type="button" aria-label="Проиграть день"><svg viewBox="0 0 24 24" id="playIco" aria-hidden="true"><path d="M7 4l14 8-14 8z"></path></svg></button>
-      <div class="clock-group">
-        <div class="clock" id="clock">13:00</div>
-        <div class="time-date" id="timeDate"></div>
+  <div class="viewer-toolbar">
+    <div class="viewer-modes">
+      <div class="seg" role="group" aria-label="Вид">
+        <button type="button" data-view="3d" aria-pressed="true"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM4 7.5l8 4.5 8-4.5M12 12v9"/></svg>3D</button>
+        <button type="button" data-view="top" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 12h16M12 4v16"/></svg>Сверху</button>
+        <button type="button" data-view="plan" aria-pressed="false"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6zM15 3v5h5M9 13h6M9 17h6"/></svg>План</button>
       </div>
-      <div class="state" id="state"></div>
-    <div class="rose" id="rose" aria-label="Роза ветров">
+      <div class="seg" id="seasons" role="group" aria-label="Сезон"></div>
+    </div>
+    <div class="hint" id="hint">Потяните, чтобы повернуть · колёсико — масштаб</div>
+  </div>
+  <div class="ui solar-controls" id="solarControls">
+    <div class="rose card" id="rose" aria-label="Роза ветров">
       <svg viewBox="-56 -56 112 112">
         <g class="dial" id="dial">
           <circle class="ring" r="38"></circle>
@@ -100,14 +94,27 @@
         <circle class="sunpt" id="sunpt" r="4.5" cx="0" cy="-38"></circle>     <!-- the ring and the sun inside the letters: on 44 the dot sat on «Ю» at noon (Юрий, 13.11.2026) -->
       </svg>
     </div>
+    <div class="time card" id="time">
+    <div class="row">
+      <div class="time-summary">
+        <button class="play" id="play" type="button" aria-label="Проиграть день"><svg viewBox="0 0 24 24" id="playIco" aria-hidden="true"><path d="M7 4l14 8-14 8z"></path></svg></button>
+        <div class="clock-group">
+          <div class="clock" id="clock">13:00</div>
+          <div class="time-date" id="timeDate"></div>
+        </div>
+      </div>
       <div class="arc"><svg viewBox="0 16 200 40" id="arcSvg" role="img" aria-label="График восхода и заката"><line class="h" x1="0" y1="44" x2="200" y2="44"></line><path class="pn" id="arcNight" d=""></path><path class="p" id="arcDay" d=""></path><circle class="d" id="arcDot" r="4" cx="0" cy="44"></circle><text x="0" y="54" id="arcSr"></text><text x="200" y="54" text-anchor="end" id="arcSs"></text></svg></div>
-      <button class="fold" id="timeB" type="button" aria-label="Свернуть шкалу" aria-expanded="true"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></button>
+      <div class="time-details">
+        <div class="state" id="state"></div>
+        <button class="fold" id="timeB" type="button" aria-label="Свернуть шкалу" aria-expanded="true"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></button>
+      </div>
     </div>
     <div class="track">
       <div class="day"><i id="dayspan"></i></div>
       <div class="ivals" id="ivals"></div>
       <input type="range" id="slider" min="0" max="1440" step="1" value="780" aria-label="Время суток" aria-valuetext="13:00">
       <div class="ticks" id="ticks"></div>
+    </div>
     </div>
   </div>
   <div class="err" id="err" hidden=""></div>

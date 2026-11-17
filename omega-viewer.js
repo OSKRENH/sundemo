@@ -787,7 +787,7 @@ function focusRoom(r) {
 const slider = $('slider');
 new ResizeObserver(([entry]) => {
   box.style.setProperty('--time-height', `${entry.target.offsetHeight}px`);
-}).observe($('time'), { box: 'border-box' });
+}).observe($('solarControls'), { box: 'border-box' });
 for (let h = 0; h <= 24; h += 3) { const s = document.createElement('span'); if (h % 6) s.className = 'minor'; s.style.left = `${h / 24 * 100}%`; s.textContent = `${String(h).padStart(2, '0')}:00`; $('ticks').appendChild(s); }
 slider.addEventListener('input', () => { S.minutes = +slider.value; if (S.playing) stopPlay(); });
 let playT = null;
@@ -799,8 +799,16 @@ $('play').addEventListener('click', () => {
 });
 
 // ── seasons ──
+const seasonIcons = {
+  winter: '<path d="M12 2v20M2 12h20M5 5l14 14M19 5L5 19"/>',
+  mid: '<path d="M4 20c0-8 4-14 14-16-1 9-6 14-14 16zM4 20l8-8"/>',
+  summer: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>',
+};
 for (const s of D.seasons) {
-  const b = document.createElement('button'); b.type = 'button'; b.dataset.key = s.key; b.textContent = s.name; b.setAttribute('aria-pressed', s === S.season);
+  const b = document.createElement('button'); b.type = 'button'; b.dataset.key = s.key;
+  b.innerHTML = `<svg aria-hidden="true" viewBox="0 0 24 24">${seasonIcons[s.key] || ''}</svg>`;
+  b.append(s.name);
+  b.setAttribute('aria-pressed', s === S.season);
   b.addEventListener('click', () => { S.season = s; store.set('sun.season', s.key); [...$('seasons').children].forEach(x => x.setAttribute('aria-pressed', x === b)); updateDay(); updateSun(); hover(null); needs = true; });     // updateSun: with the camera at rest the season changed the hours in the list and left the sun and the shadows of the season before, until the slider or the camera moved (10.11.2026)
   $('seasons').appendChild(b);
 }
