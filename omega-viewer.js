@@ -696,7 +696,10 @@ function updateSun() {
   sunBall.material.opacity = lerp(0.6, 1, warm);
   ray.geometry.setFromPoints([sunBall.position.clone(), target.clone()]); ray.computeLineDistances();
   // the readout
-  $('clock').textContent = hhmm(S.shown); $('slider').setAttribute('aria-valuetext', hhmm(S.shown));
+  const timeText = hhmm(S.shown);
+  $('clock').textContent = timeText;
+  $('slider').setAttribute('aria-valuetext', timeText);
+  $('time').style.setProperty('--time-progress', S.minutes / 1440);
   const dl = S.season.daylight, st = $('state'); $('time').classList.toggle('night', !up);
   if (up) st.innerHTML = `Солнце над горизонтом<br>высота <b>${s.alt.toFixed(0)}°</b> · азимут <b>${s.az.toFixed(0)}°</b>`;
   else st.innerHTML = dl ? `Солнце ниже горизонта<br>день <b>${hhmm(dl[0])}–${hhmm(dl[1])}</b>` : 'Солнце ниже горизонта';
@@ -712,13 +715,16 @@ function updateSun() {
 }
 function updateDay() {
   const dl = S.season.daylight, e = $('dayspan');
+  $('timeDate').textContent = `${S.season.date} · Москва`;
   if (!dl) { e.style.display = 'none'; } else { e.style.display = ''; e.style.left = `${dl[0] / 1440 * 100}%`; e.style.right = `${100 - dl[1] / 1440 * 100}%`; }
   const day = [], night = [];
   for (let m = 0; m <= 1440; m += 10) { const q = sunPosition(D.lat, D.lon, D.tz, S.season.doy, m); const p = `${(m / 1440 * 200).toFixed(1)},${(44 - Math.max(q.alt, -8) / 90 * 40).toFixed(1)}`; (q.alt > -0.833 ? day : night).push(p); }
   $('arcDay').setAttribute('d', day.length ? 'M' + day.join('L') : ''); $('arcNight').setAttribute('d', 'M' + night.join('L'));
-  $('arcSr').textContent = dl ? `восход ${hhmm(dl[0])}` : ''; $('arcSs').textContent = dl ? `заход ${hhmm(dl[1])}` : '';
-  document.querySelectorAll('.ticks .sr,.ticks .ss').forEach(x => x.remove());
-  if (dl) for (const [m, c] of [[dl[0], 'sr'], [dl[1], 'ss']]) { const t = document.createElement('span'); t.className = c; t.style.left = `${m / 1440 * 100}%`; t.textContent = hhmm(m); $('ticks').appendChild(t); }
+  $('arcSr').textContent = dl ? `Восход ${hhmm(dl[0])}` : '';
+  $('arcSs').textContent = dl ? `Закат ${hhmm(dl[1])}` : '';
+  $('arcSvg').setAttribute('aria-label', dl
+    ? `Восход ${hhmm(dl[0])}, закат ${hhmm(dl[1])}`
+    : 'График восхода и заката');
   computeRoomSun();
 }
 
@@ -779,6 +785,9 @@ function focusRoom(r) {
 
 // ── the time scale ──
 const slider = $('slider');
+new ResizeObserver(([entry]) => {
+  box.style.setProperty('--time-height', `${entry.target.offsetHeight}px`);
+}).observe($('time'), { box: 'border-box' });
 for (let h = 0; h <= 24; h += 3) { const s = document.createElement('span'); if (h % 6) s.className = 'minor'; s.style.left = `${h / 24 * 100}%`; s.textContent = `${String(h).padStart(2, '0')}:00`; $('ticks').appendChild(s); }
 slider.addEventListener('input', () => { S.minutes = +slider.value; if (S.playing) stopPlay(); });
 let playT = null;
