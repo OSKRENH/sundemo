@@ -167,7 +167,7 @@ body {
   gap: 20px;
   min-height: 0;
   overflow: auto;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 
 .apartment-card h1 {
@@ -213,7 +213,7 @@ body {
 .apartment-panel .rooms header { padding: 4px 0; color: var(--navy); }
 .apartment-panel .rooms header button { width: 44px; height: 44px; background: transparent; }
 .apartment-panel .rooms header button:hover { background: var(--bg); }
-.apartment-panel .rooms ul { padding: 0 0 8px; }
+.apartment-panel .rooms ul { padding: 0 0 8px; overflow: visible; }
 .apartment-panel .rooms li { padding-inline: 8px; }
 .apartment-panel .rooms li:is(:hover, .on) { background: #f4f1f8; }
 .apartment-panel .rooms li .h.none { color: var(--mute); }
@@ -255,7 +255,7 @@ body {
 .workspace .sun .ui { zoom: 1; }
 .workspace .solar-controls {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 8px;
   left: 50%;
   bottom: var(--time-bottom);
@@ -266,11 +266,21 @@ body {
 
 .workspace .solar-controls:has(.time.shut) { width: max-content; }
 .workspace .solar-controls > .rose {
+  position: relative;
   flex: 0 0 auto;
-  width: 60px;
-  height: 60px;
-  padding: 7px;
-  border-radius: 10px;
+  width: var(--time-height);
+  height: auto;
+  padding: 0;
+  border-radius: 16px;
+}
+
+.workspace .solar-controls > .rose svg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: calc(100% - 22px);
+  height: auto;
+  transform: translate(-50%, -50%);
 }
 
 .workspace .solar-controls > .rose,
@@ -390,7 +400,8 @@ body {
 
 @container (max-width: 640px) {
   .workspace .time { padding: 8px 10px 6px; }
-  .workspace .solar-controls > .rose { width: 48px; height: 48px; padding: 5px; }
+  .workspace .solar-controls > .rose { width: 48px; border-radius: 12px; }
+  .workspace .solar-controls > .rose svg { width: calc(100% - 10px); }
   .workspace .time .row {
     grid-template-columns: auto minmax(0, 1fr);
     gap: 4px;

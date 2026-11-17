@@ -763,8 +763,7 @@ function renderRoomList() {
   if (!lit.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'В этот сезон прямого солнца нет ни в одной комнате'; ul.appendChild(li); }
   for (const r of lit) {
     const li = document.createElement('li'); li.dataset.id = r.id;
-    const iv = r.sun.intervals.map(([a, b]) => `<i style="left:${a / 1440 * 100}%;width:${(b - a) / 1440 * 100}%"></i>`).join('');
-    li.innerHTML = `<b>${r.name}</b><span>${ru(r.area_m2)} м²</span><div class="bar">${iv}</div><div class="h ${r.sun.minutes ? '' : 'none'}">${r.sun.minutes ? `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>${fmtDur(r.sun.minutes)} · ${sunSpans(r.sun)}` : 'без прямого солнца'}</div>`;
+    li.innerHTML = `<b>${r.name}</b><span>${ru(r.area_m2)} м²</span><div class="h ${r.sun.minutes ? '' : 'none'}">${r.sun.minutes ? `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>${fmtDur(r.sun.minutes)} · ${sunSpans(r.sun)}` : 'без прямого солнца'}</div>`;
     li.addEventListener('mouseenter', () => hover(r)); li.addEventListener('mouseleave', () => hover(null));
     li.addEventListener('click', () => focusRoom(r));
     ul.appendChild(li);
@@ -787,7 +786,7 @@ function focusRoom(r) {
 const slider = $('slider');
 new ResizeObserver(([entry]) => {
   box.style.setProperty('--time-height', `${entry.target.offsetHeight}px`);
-}).observe($('solarControls'), { box: 'border-box' });
+}).observe($('time'), { box: 'border-box' });
 for (let h = 0; h <= 24; h += 3) { const s = document.createElement('span'); if (h % 6) s.className = 'minor'; s.style.left = `${h / 24 * 100}%`; s.textContent = `${String(h).padStart(2, '0')}:00`; $('ticks').appendChild(s); }
 slider.addEventListener('input', () => { S.minutes = +slider.value; if (S.playing) stopPlay(); });
 let playT = null;

@@ -1,0 +1,259 @@
+@font-face {
+  font-family: "Guild A Display";
+  src: url("brand/guild-a-display.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TT Hoves Pro";
+  src: url("brand/tt-hoves-pro.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root {
+  --navy: #1f0048;
+  --mute: #544369;
+  --hair: rgb(31 0 72 / 14%);
+  --card: rgb(255 255 255 / 88%);
+  --edge: rgb(255 255 255 / 72%);
+  --glass: blur(26px);
+  --r: 18px;
+  --shadow: 0 10px 30px rgb(31 0 72 / 13%);
+  --fd: "Guild A Display", Georgia, serif;
+  --ft: "TT Hoves Pro", system-ui, sans-serif;
+  --catalog-black: #080808;
+  --catalog-line: #37323d;
+  --catalog-muted: #c6bdcb;
+  --inset: clamp(16px, 3vw, 52px);
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: var(--catalog-black);
+  color: #fff;
+  font: 400 16px/1.4 var(--ft);
+  font-synthesis: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid #a7a4df; outline-offset: 4px; }
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.hero-photo {
+  position: relative;
+  height: clamp(360px, 39vw, 1000px);
+}
+
+.hero .cover { display: block; width: 100%; height: 100%; object-fit: cover; }
+.hero-photo::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgb(0 0 0 / 44%), transparent 20%, transparent 58%, rgb(0 0 0 / 58%));
+  content: "";
+  pointer-events: none;
+}
+
+.hero .logo {
+  position: absolute;
+  z-index: 2;
+  top: clamp(20px, 2.3vw, 48px);
+  left: var(--inset);
+  width: 166px;
+  height: auto;
+}
+
+.hero h1 {
+  position: absolute;
+  z-index: 2;
+  bottom: -.15em;
+  left: 24%;
+  right: var(--inset);
+  margin: 0;
+  font: 400 clamp(46px, 4.4vw, 112px)/.94 var(--fd);
+  letter-spacing: -.025em;
+  text-transform: uppercase;
+}
+
+.hero-decor {
+  position: absolute;
+  z-index: 1;
+  top: clamp(315px, 34vw, 880px);
+  left: 17%;
+  width: clamp(135px, 16vw, 408px);
+  height: auto;
+  pointer-events: none;
+}
+
+.hero-actions {
+  position: relative;
+  z-index: 2;
+  padding: clamp(40px, 7vw, 170px) var(--inset) clamp(28px, 2.1vw, 58px) 28%;
+}
+
+.hero-actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  border-bottom: 1px solid currentColor;
+  text-decoration: none;
+  font-size: clamp(14px, 1vw, 24px);
+  text-transform: uppercase;
+}
+.hero-actions a:hover { color: #d9c6fb; }
+
+.wrap {
+  display: grid;
+  grid-template-columns: clamp(245px, 24vw, 340px) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(24px, 4vw, 72px);
+  margin: 0 auto;
+  padding: 32px var(--inset) 60px;
+  border-top: 1px solid var(--catalog-line);
+  scroll-margin-top: 16px;
+}
+
+.catalog-sidebar {
+  position: sticky;
+  top: 24px;
+  max-height: calc(100dvh - 48px);
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #7e6d93 transparent;
+}
+
+.filter-toggle { display: none; }
+.filters { display: grid; gap: 22px; }
+.found {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--catalog-line);
+  font-size: 12px;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+.found b { font-weight: 400; }
+#reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--catalog-muted);
+  font-size: 12px;
+}
+#reset:not(:disabled):hover { color: #fff; text-decoration: underline; }
+#reset:disabled { opacity: .6; cursor: default; }
+#reset svg, .filter-toggle svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+
+.f { display: grid; gap: 8px; }
+.f > span { color: var(--catalog-muted); font-size: 13px; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.pills button {
+  min-width: 34px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--catalog-line);
+  border-radius: 5px;
+  background: #1a171d;
+  font-size: 14px;
+}
+.pills button:hover { border-color: #a7a4df; }
+.pills button[aria-pressed="true"] { background: #ab9bd0; border-color: #ab9bd0; color: #180929; }
+.range .val { float: right; color: #fff; font-size: 12px; font-weight: 400; }
+.dual { position: relative; height: 36px; margin-inline: 10px; }
+.dual :is(.tr, .fill) { position: absolute; top: 17px; height: 2px; }
+.dual .tr { inset-inline: 0; background: var(--catalog-line); }
+.dual .fill { background: #ab9bd0; }
+.dual input {
+  position: absolute;
+  inset: 0 -10px;
+  width: calc(100% + 20px);
+  height: 36px;
+  margin: 0;
+  appearance: none;
+  background: none;
+  pointer-events: none;
+}
+.dual input::-webkit-slider-runnable-track { height: 36px; background: none; }
+.dual input::-moz-range-track { background: none; }
+.dual input::-webkit-slider-thumb {
+  width: 20px; height: 20px; margin-top: 8px; appearance: none;
+  border: 1px solid #ab9bd0; border-radius: 50%; background: #fff; pointer-events: auto; cursor: grab;
+}
+.dual input::-moz-range-thumb {
+  width: 18px; height: 18px; border: 1px solid #ab9bd0; border-radius: 50%;
+  background: #fff; pointer-events: auto; cursor: grab;
+}
+
+.catalog-results section + section { margin-top: 42px; }
+h2 {
+  margin: 0 0 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--catalog-line);
+  font: 400 clamp(25px, 2.6vw, 40px)/1 var(--fd);
+  letter-spacing: -.03em;
+  text-transform: uppercase;
+}
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 235px), 1fr)); gap: 16px; }
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: 22px 22px 18px;
+  border: 1px solid var(--edge);
+  border-radius: var(--r);
+  background: var(--card);
+  backdrop-filter: var(--glass);
+  color: var(--navy);
+  text-decoration: none;
+  box-shadow: var(--shadow);
+  transition: background-color .2s, transform .2s;
+}
+.card:hover { background-color: color-mix(in srgb, var(--card), #fff 35%); transform: translateY(-2px); }
+.card p { margin: 0; }
+.card .t b { font: 400 26px/1 var(--fd); letter-spacing: -.03em; text-transform: uppercase; }
+.card .m { margin-top: 10px; color: var(--mute); font-size: 14px; }
+.card .img { display: block; aspect-ratio: 4/3; margin: 16px 0; overflow: hidden; }
+.card img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.card .a { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--hair); font-size: 18px; }
+.card .a b { font-weight: 400; }
+.card .a svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; }
+.empty { margin: 0 0 40px; color: var(--catalog-muted); }
+.credit { display: flex; justify-content: flex-end; margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--catalog-line); }
+.credit a { display: inline-flex; align-items: center; gap: 12px; color: var(--catalog-muted); font-size: 12px; text-decoration: none; text-transform: uppercase; }
+.credit a:hover { color: #fff; }
+.credit img { width: 54px; height: auto; filter: invert(1); }
+
+@media (max-width: 760px) {
+  .hero .cover { object-position: 63% center; }
+  .hero h1 { left: var(--inset); font-size: clamp(38px, 7.5vw, 62px); text-wrap: balance; }
+  .hero-decor { left: 14%; }
+  .hero-actions { padding-left: var(--inset); }
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-top: 20px; }
+  .catalog-sidebar { position: static; max-height: none; overflow: visible; }
+  .filter-toggle {
+    display: flex; justify-content: space-between; align-items: center; width: 100%;
+    min-height: 44px; padding: 0 0 8px; border: 0; border-bottom: 1px solid var(--catalog-line);
+    background: transparent;
+  }
+  .filter-toggle[aria-expanded="true"] svg { transform: rotate(180deg); }
+  .filters { padding-top: 12px; }
+  .filters:not([data-open]) { display: none; }
+  .pills button { min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card { transition: none; }
+}
