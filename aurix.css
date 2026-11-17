@@ -1,0 +1,347 @@
+body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #fff;
+}
+
+.site-header {
+  position: relative;
+  z-index: 6;
+  padding: 14px clamp(12px, 2vw, 32px);
+  background: #111;
+  color: #fff;
+}
+
+.viewer-nav {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 20px;
+}
+
+.viewer-nav .navrow {
+  width: auto;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.viewer-modes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.viewer-nav .ptog,
+.viewer-nav .back,
+.viewer-nav .flip,
+.viewer-nav .viewer-modes .seg,
+.viewer-nav #svcB {
+  height: 44px;
+  border: 1px solid #424242;
+  background: #232323;
+  color: #fff;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.viewer-nav .ptog,
+.viewer-nav #svcB {
+  flex: 0 0 44px;
+  width: 44px;
+}
+
+.viewer-nav .flip a,
+.viewer-nav .flip span,
+.viewer-nav .viewer-modes button {
+  color: #fff;
+}
+
+.viewer-nav .viewer-modes button small {
+  color: #c3c3c3;
+}
+
+.viewer-nav .viewer-modes button[aria-pressed="true"] {
+  background: #fff;
+  color: #111;
+}
+
+.viewer-nav .viewer-modes button[aria-pressed="true"] small {
+  color: #535353;
+}
+
+.viewer-nav .ptog:hover,
+.viewer-nav .back:hover,
+.viewer-nav .flip a:hover,
+.viewer-nav .viewer-modes button:not([aria-pressed="true"]):hover,
+.viewer-nav #svcB:hover {
+  background: #414141;
+}
+
+.viewer-nav .ptog[aria-expanded="false"] svg { transform: scaleX(-1); }
+.viewer-nav :is(button, a):focus-visible { outline-color: #fff; }
+
+.viewer-nav .pop {
+  top: calc(100% + 10px);
+  bottom: auto;
+  z-index: 2;
+  color: var(--navy);
+  background: #fff;
+  max-height: min(64dvh, 600px);
+  overflow: auto;
+}
+
+.viewer-nav .pop :is(button, a):focus-visible { outline-color: var(--navy); }
+.source-link { color: var(--navy); text-underline-offset: 3px; }
+.svc .source-link {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.workspace {
+  display: flex;
+  flex: 1 0 auto;
+  min-height: 0;
+}
+
+.apartment-panel {
+  display: flex;
+  flex: 0 0 clamp(248px, 24vw, 340px);
+  flex-direction: column;
+  min-width: 0;
+  gap: 20px;
+  padding: 26px clamp(18px, 2vw, 30px) 22px;
+  background: #fff;
+  color: #171717;
+}
+
+.apartment-panel[hidden],
+.viewer-nav .back[hidden],
+.workspace .facade[hidden] { display: none; }
+
+.project-logo {
+  display: block;
+  align-self: center;
+  width: min(155px, 100%);
+  height: auto;
+}
+
+.sidebar-content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.apartment-card h1 {
+  margin: 0;
+  color: #545457;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+#flatArea {
+  margin: 12px 0 0;
+  font-family: var(--fd);
+  font-size: clamp(42px, 4.2vw, 66px);
+  line-height: 1;
+  letter-spacing: -.035em;
+  white-space: nowrap;
+}
+
+.favorite {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: 0 0 8px auto;
+  font-size: 13px;
+}
+
+.favorite svg {
+  width: 16px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+}
+
+.favorite[aria-pressed="true"] svg { fill: currentColor; }
+
+.apartment-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+  margin: 0;
+  padding: 14px 0;
+  border-block: 1px solid #dedede;
+  font-size: 14px;
+}
+
+.apartment-facts dt { color: #545457; font-size: 12px; }
+.apartment-facts dd { margin: 4px 0 0; }
+.apartment-panel .fchip { align-self: start; }
+
+.workspace .facade,
+.workspace .sun.tshut .facade {
+  position: static;
+  display: flex;
+  width: 100%;
+  padding: 0;
+}
+
+.workspace .facade svg.house { width: min(100%, 205px); }
+.workspace .facade span { color: #545457; }
+.apartment-panel .rooms { flex: 0 0 auto; max-height: none; border-block: 1px solid #dedede; }
+.apartment-panel .rooms header { padding: 8px 0; color: #171717; }
+.apartment-panel .rooms header button { width: 44px; height: 44px; }
+.apartment-panel .rooms ul { padding: 0 0 8px; }
+.apartment-panel .rooms li { padding-inline: 8px; }
+.apartment-panel .rooms li:is(:hover, .on) { background: #f4f1f8; }
+.apartment-panel .rooms li .h.none { color: #5e5870; }
+
+.sidebar-footer {
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.sidebar-footer img { width: 104px; height: auto; }
+
+.workspace .sun {
+  flex: 1 1 0;
+  height: auto;
+  min-width: 0;
+  touch-action: auto;
+  container-type: inline-size;
+  --credit-space: 64px;
+}
+
+.workspace .sun canvas { touch-action: none; }
+.workspace .sun .ui { zoom: 1; }
+.workspace .time {
+  left: 50%;
+  right: auto;
+  bottom: var(--credit-space);
+  width: min(860px, calc(100% - 24px));
+  margin: 0;
+  padding: 14px 20px 10px;
+  transform: translateX(-50%);
+}
+
+.workspace .time.shut { width: max-content; padding: 8px 10px; }
+.workspace .time .fold { width: 44px; height: 44px; }
+.workspace .hint,
+.workspace .sun.tshut .hint {
+  top: 18px;
+  right: 12px;
+  bottom: auto;
+  left: 12px;
+  transform: none;
+  text-align: center;
+  white-space: normal;
+}
+
+.workspace .sun .plan2d {
+  padding: 14px 12px calc(var(--credit-space) + 184px);
+}
+
+.workspace .sun.tshut .plan2d { padding-bottom: calc(var(--credit-space) + 128px); }
+.workspace .pz { bottom: calc(var(--credit-space) + 130px); }
+.workspace .sun.tshut .pz { bottom: calc(var(--credit-space) + 72px); }
+.workspace .pz button { width: 44px; height: 44px; }
+
+.credit {
+  position: absolute;
+  z-index: 3;
+  right: 12px;
+  bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #fff;
+  color: #211731;
+  font-size: 11px;
+  text-decoration: none;
+}
+
+.credit:hover { text-decoration: underline; text-underline-offset: 3px; }
+.credit img { width: 34px; height: auto; }
+
+@container (min-width: 900px) {
+  .workspace .time { width: min(820px, calc(100% - 316px)); bottom: 16px; }
+  .workspace .time.shut { width: max-content; }
+  .workspace .sun .plan2d { padding-bottom: 184px; }
+  .workspace .sun.tshut .plan2d { padding-bottom: 128px; }
+  .workspace .pz { bottom: 146px; }
+  .workspace .sun.tshut .pz { bottom: 88px; }
+  .credit { right: 16px; bottom: 16px; }
+}
+
+@container (max-width: 670px) {
+  .workspace .time .arc { display: none; }
+  .workspace .time .rose { width: 66px; height: 66px; }
+  .workspace .time.shut .rose { width: 48px; height: 48px; }
+  .workspace .time .clock { font-size: 30px; min-width: 0; }
+}
+
+@container (max-width: 460px) {
+  .workspace .time { padding: 10px 14px 8px; column-gap: 8px; }
+  .workspace .time .row { gap: 8px; }
+  .workspace .time .rose { width: 54px; height: 54px; }
+  .workspace .time .play { width: 44px; height: 44px; }
+}
+
+@media (min-width: 821px) {
+  .workspace { flex: 1 0 560px; }
+  .apartment-panel { max-height: 100%; }
+  html.editing .site-header,
+  html.editing .workspace { margin-right: 320px; }
+  html.editing .sun { width: auto; }
+  html:has(.thed.min) .site-header,
+  html:has(.thed.min) .workspace { margin-right: 0; }
+}
+
+@media (max-width: 1030px) {
+  .viewer-nav { grid-template-columns: minmax(0, 1fr) auto; }
+  .viewer-modes { grid-row: 2; grid-column: 1 / -1; }
+}
+
+@media (max-width: 820px) {
+  .site-header { padding-block: 8px; }
+  .workspace { flex-direction: column; }
+  .workspace .sun { order: -1; flex: 0 0 auto; height: max(560px, 72svh); }
+  .apartment-panel { flex: auto; padding-inline: clamp(20px, 7vw, 48px); }
+  .workspace .hint { display: none; }
+  .viewer-nav .viewer-modes button { height: 36px; }
+  html.editing .sun { width: 100%; }
+  .thed { width: min(320px, 100vw); }
+}
+
+@media (max-width: 480px) {
+  .viewer-nav { column-gap: 6px; }
+  .viewer-nav .navrow { gap: 4px; }
+  .viewer-nav .back { padding-inline: 8px; font-size: 11px; }
+  .viewer-nav .back svg { display: none; }
+  .viewer-nav .flip a { width: 28px; }
+  .viewer-nav .flip span { min-width: 44px; }
+  .viewer-nav .viewer-modes button { gap: 5px; padding-inline: 8px; }
+  #seasons button { flex-wrap: wrap; justify-content: center; gap: 0 4px; font-size: 11px; line-height: 1; }
+  #seasons button small { display: block; flex-basis: 100%; font-size: 10px; text-align: center; }
+  #seasons button svg { width: 12px; height: 12px; }
+}
+
+@media (max-width: 360px) {
+  .viewer-nav .back { padding-inline: 5px; font-size: 10px; letter-spacing: 0; }
+  .viewer-nav .flip a { width: 22px; }
+  .viewer-nav .flip span { min-width: 36px; }
+}

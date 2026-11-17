@@ -1,154 +1,117 @@
-<!doctype html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#050505" />
-  <title>Omega Residence — квартира №2</title>
-  <link rel="preconnect" href="https://fonts.cdnfonts.com" />
-  <link href="https://fonts.cdnfonts.com/css/tt-hoves-pro-trial" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css" />
+<!doctype html><html lang="ru"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#111">
+<title>Квартира №3 — Резиденции Омега</title>
+<link rel="stylesheet" href="omega-viewer.css">
+<link rel="stylesheet" href="aurix.css">
 </head>
 <body>
-  <header class="site-header">
-    <button class="header-menu" type="button">Меню проекта <span aria-hidden="true">⌄</span></button>
-    <nav class="breadcrumbs" aria-label="Хлебные крошки">
-      <span>Выбор</span><i>/</i><span>Резиденция Омега</span><i>/</i><span>Корпус 1</span><i>/</i><span>Этаж 2</span><i>/</i><span>№2</span>
-    </nav>
-    <img class="omega-logo" src="assets/omega-logo.svg" alt="Резиденция Омега" />
-    <a class="property-link" href="#">Выбрать недвижимость</a>
-    <button class="bookmark-icon" type="button" aria-label="Добавить в избранное"></button>
-    <button class="burger-icon" type="button" aria-label="Открыть меню"><span></span><span></span></button>
-  </header>
-
-  <main class="page-shell">
-    <section class="viewer" aria-label="Интерактивный просмотр квартиры">
-      <div class="viewer-stage" id="viewerStage">
-        <div class="three-mount" id="threeMount"></div>
-
-        <div class="plan-view" id="planView" hidden>
-          <img src="assets/plan-giraffe.svg" alt="Двухмерная планировка квартиры №2" />
-        </div>
-
-        <div class="viewer-title">
-          <small>Резиденция Омега</small>
-          <strong>Квартира №2</strong>
-          <span>73,2 м² · этаж 2</span>
-        </div>
-
-        <div class="viewer-top-center">
-          <button class="room-select" type="button">
-            <span>Вся квартира</span>
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
-          </button>
-        </div>
-
-        <div class="viewer-actions">
-          <button id="resetButton" type="button" aria-label="Сбросить ракурс" title="Сбросить ракурс">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 9A8 8 0 1 1 4 14.5M4.5 9V4.5M4.5 9H9"/></svg>
-          </button>
-          <button id="fullscreenButton" type="button" aria-label="На весь экран" title="На весь экран">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H4v4M16 4h4v4M20 16v4h-4M4 16v4h4"/></svg>
-          </button>
-        </div>
-
-        <button class="gallery-arrow gallery-arrow--left" type="button" aria-label="Предыдущая квартира">‹</button>
-        <button class="gallery-arrow gallery-arrow--right" type="button" aria-label="Следующая квартира">›</button>
-
-        <div class="compass" id="compass" aria-label="Ориентация квартиры">
-          <span class="compass-n">С</span>
-          <span class="compass-e">В</span>
-          <span class="compass-s">Ю</span>
-          <span class="compass-w">З</span>
-          <i class="compass-ring"></i>
-          <i class="compass-arrow"></i>
-          <i class="compass-sun" id="compassSun"></i>
-        </div>
-
-        <div class="room-chip" id="roomChip">
-          <span class="room-chip-dot"></span>
-          <div><strong>Кухня-гостиная</strong><small>36,8 м²</small></div>
-          <span class="room-chip-arrow">→</span>
-        </div>
-
-        <div class="mode-dock" role="tablist" aria-label="Режим просмотра">
-          <button class="mode-button" type="button" data-mode="2d" role="tab">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM9 5v7h11M9 12H4M15 12v7"/></svg>
-            <span>2D</span>
-          </button>
-          <button class="mode-button is-active" type="button" data-mode="3d" role="tab">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm0 0v9m8-4.5-8 4.5-8-4.5M12 12v9"/></svg>
-            <span>3D</span>
-          </button>
-          <button class="mode-button" type="button" data-mode="sun" role="tab">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>
-            <span>Солнце</span>
-          </button>
-        </div>
-
-        <div class="sun-panel" id="sunPanel" hidden>
-          <div class="sun-panel-head">
-            <div class="sun-time">
-              <span class="sun-symbol">☀</span>
-              <div><strong id="timeValue">13:00</strong><small id="sunCaption">Солнце в квартире</small></div>
-            </div>
-            <div class="date-switch" role="tablist" aria-label="Сезон">
-              <button type="button" data-season="winter">21 дек</button>
-              <button type="button" data-season="shoulder" class="is-active">21 мар</button>
-              <button type="button" data-season="summer">21 июн</button>
-            </div>
-            <div class="sun-position" id="sunPosition">Юг · 39°</div>
-          </div>
-          <div class="sun-slider-row">
-            <span>06:00</span>
-            <input id="timeRange" type="range" min="360" max="1320" step="5" value="780" aria-label="Время суток" />
-            <span>22:00</span>
-          </div>
-        </div>
-
-        <div class="interaction-hint" id="interactionHint">Потяните, чтобы повернуть · колёсико — масштаб</div>
+<header class="site-header">
+  <nav class="viewer-nav" aria-label="Управление просмотрщиком">
+    <div class="navrow">
+      <button type="button" class="ptog card" id="ptog" aria-controls="apartmentPanel" aria-label="Скрыть панель" aria-expanded="true" title="Скрыть панель"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="3"></rect><path d="M9.5 4.5v15M15.5 9.5l-2.5 2.5 2.5 2.5"></path></svg></button>
+      <a class="back" id="back" href="catalog.html"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"></path></svg>Все планировки</a>
+      <div class="flip card" id="flip" hidden=""><a id="prevB" href="index.html" aria-label="Предыдущая квартира" title="Предыдущая квартира"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"></path></svg></a><span id="flipPos"></span><a id="nextB" href="index.html" aria-label="Следующая квартира" title="Следующая квартира"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></a></div>
+    </div>
+  <div class="viewer-modes">
+    <div class="seg card" role="group" aria-label="Вид">
+      <button type="button" data-view="3d" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM4 7.5l8 4.5 8-4.5M12 12v9"></path></svg>3D</button>
+      <button type="button" data-view="top" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 12h16M12 4v16"></path></svg>Сверху</button>
+      <button type="button" data-view="plan" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6zM15 3v5h5M9 13h6M9 17h6"></path></svg>План</button>
+    </div>
+    <div class="seg card" id="seasons" role="group" aria-label="Сезон"></div>
+  </div>
+    <div class="tools" id="tools">
+      <button type="button" class="tool card" id="svcB" aria-expanded="false" aria-label="Сервис" title="Сервис: чертёж, замечание, модель, оформление"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></button>
+      <div class="pop card svc" id="svcPop" role="menu" aria-label="Сервис" hidden="">
+        <button type="button" role="menuitem" data-svc="ovB"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"></path><path d="M3 13l9 5 9-5"></path></svg>Чертёж поверх модели</button>
+        <a class="source-link" role="menuitem" href="https://omega.photoreal3d.ru/s1_f02_3/" target="_blank" rel="noopener">Замечания и журнал</a>
+        <button type="button" role="menuitem" data-svc="fbxB"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"></path></svg>Модель FBX</button>
+        <button type="button" role="menuitem" data-svc="theme"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="8.5" cy="10" r="1.2"></circle><circle cx="12" cy="7.5" r="1.2"></circle><circle cx="15.5" cy="10" r="1.2"></circle><path d="M12 21a2.5 2.5 0 0 1 0-5h1.5a2.5 2.5 0 0 0 2.5-2.5"></path></svg>Оформление</button>
       </div>
-    </section>
+      <button type="button" class="tool card" id="fbxB" aria-label="Скачать модель FBX" title="Модель FBX: скачать и загрузить правку" aria-expanded="false" hidden=""><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"></path></svg></button>
+      <div class="pop card fb" id="fbxPop" role="dialog" aria-label="Модель FBX" hidden="">
+        <h4>Модель FBX</h4>
+        <p>Модель этой квартиры для 3ds Max: размеры в метрах, у каждого элемента своё имя</p>
+        <button type="button" class="send" id="fbxGet">Скачать FBX</button>
+        <a class="source-link" href="https://omega.photoreal3d.ru/s1_f02_3/" target="_blank" rel="noopener">Загрузить правку в исходном viewer</a>
+      </div>
+      <button type="button" class="tool card" id="ovB" aria-pressed="false" aria-expanded="false" aria-label="Чертёж поверх модели" title="Чертёж поверх модели" hidden=""><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"></path><path d="M3 13l9 5 9-5"></path></svg></button>
+      <div class="pop card" id="ovPop" hidden="">
+        <h4>Чертёж поверх модели</h4>
+        <p>Планировка, по которой построена модель. Расхождения видно сразу</p>
+        <div class="seg" role="group" aria-label="Где показать чертёж"><button type="button" data-ov="off" aria-pressed="true">Выкл</button><button type="button" data-ov="floor" aria-pressed="false">На полу</button><button type="button" data-ov="ceil" aria-pressed="false">Над потолком</button></div>
+        <label>Насыщенность<input type="range" id="ovOp" min="20" max="100" value="85" aria-label="Насыщенность чертежа"></label>
+      </div>
+      <button type="button" class="tool card" id="lbB" aria-pressed="true" aria-label="Подписи комнат" title="Подписи комнат: показать или скрыть"><svg viewBox="0 0 24 24"><path d="M4 7V5h16v2M12 5v14M9 19h6"></path></svg></button>
 
-    <aside class="details-panel">
-      <p class="apartment-type">1-комнатная квартира №2</p>
-      <div class="area-value"><img src="assets/area-guild.svg" alt="73.2 м²" /></div>
-      <button class="favorite-button" type="button">В избранное <i></i></button>
-
-      <dl class="specs">
-        <div><dt>корпус</dt><dd>1</dd></div>
-        <div><dt>секция</dt><dd>1</dd></div>
-        <div><dt>этаж</dt><dd>2</dd></div>
-        <div><dt>кол-во комнат</dt><dd>1</dd></div>
+    </div>
+  </nav>
+</header>
+<main class="workspace">
+  <aside class="apartment-panel" id="apartmentPanel" aria-label="Карточка квартиры">
+    <img class="project-logo" src="brand/project-Residence_Omega-purple.svg" alt="Резиденции Омега" width="392" height="158">
+    <div class="sidebar-content">
+    <section class="apartment-card" aria-labelledby="flatName">
+      <h1 id="flatName">1-комнатная квартира №3</h1>
+      <p id="flatArea">65,7 м²</p>
+      <button type="button" class="favorite" id="favorite" aria-pressed="false">
+        <span>В избранное</span><svg aria-hidden="true" viewBox="0 0 20 24"><path d="M3 22V2h14v20l-7-5z"/></svg>
+      </button>
+      <dl class="apartment-facts">
+        <div><dt>секция</dt><dd id="flatSection">1</dd></div>
+        <div><dt>этаж</dt><dd id="flatFloor">2</dd></div>
+        <div><dt>кол-во комнат</dt><dd id="flatRooms">1</dd></div>
       </dl>
+    </section>
+    <button type="button" class="fchip" id="fchip" hidden="" title="Сбросить фильтр: листать все квартиры"><span id="fchipT"></span><svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"></path></svg></button>
+  <div class="facade" id="facade" hidden="" aria-label="Этаж квартиры на фасаде"><svg id="facSvg" viewBox="0 0 100 100"></svg><span id="facCap"></span></div>
+    <div class="rooms" id="rooms">
+      <header><span>Комнаты · прямое солнце</span><button type="button" id="roomsB" aria-label="Свернуть список" aria-expanded="true"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></button></header>
+      <ul id="roomList"></ul>
+    </div>
+    </div>
+    <footer class="sidebar-footer"><img src="brand/wordmark-purple.svg" alt="AURIX" width="104" height="27"></footer>
+  </aside>
+  <div class="sun" id="sun" aria-label="Инсоляция квартиры">
+  <canvas id="gl"></canvas>
+  <div class="labels" id="labels"></div>
+  <div class="plan2d" id="plan2d" hidden=""></div>
+    <a class="credit" href="https://photoreal3d.ru/" target="_blank" rel="noopener"><span>Разработано</span><img src="brand/pr3d-logo.png" alt="Photoreal3d" width="42" height="26"></a>
+  <div class="ui hint" id="hint">Потяните, чтобы повернуть · колёсико — масштаб</div>
+  <div class="ui time card" id="time">
+    <div class="rose" id="rose" aria-label="Роза ветров">
+      <svg viewBox="-56 -56 112 112">
+        <g class="dial" id="dial">
+          <circle class="ring" r="38"></circle>
+          <polygon points="0,-32 4,0 -4,0" style="fill:var(--orange)"></polygon><polygon points="0,32 4,0 -4,0" fill="#c9cee0"></polygon>
+          <text class="n" y="-53">С</text><text x="53" y="0">В</text><text y="53">Ю</text><text x="-53" y="0">З</text>
+        </g>
+        <path class="trail" id="trail" d=""></path>
+        <circle class="sunpt" id="sunpt" r="4.5" cx="0" cy="-38"></circle>     <!-- the ring and the sun inside the letters: on 44 the dot sat on «Ю» at noon (Юрий, 13.11.2026) -->
+      </svg>
+    </div>
+    <div class="row">
+      <button class="play" id="play" type="button" aria-label="Проиграть день"><svg viewBox="0 0 24 24" id="playIco"><path d="M7 4l14 8-14 8z"></path></svg></button>
+      <div class="clock" id="clock">13:00</div>
+      <div class="state" id="state"></div>
+      <div class="arc" aria-hidden="true"><svg viewBox="0 0 200 56" id="arcSvg"><line class="h" x1="0" y1="44" x2="200" y2="44"></line><path class="pn" id="arcNight" d=""></path><path class="p" id="arcDay" d=""></path><circle class="d" id="arcDot" r="4" cx="0" cy="44"></circle><text x="0" y="54" id="arcSr"></text><text x="200" y="54" text-anchor="end" id="arcSs"></text></svg></div>
+      <button class="fold" id="timeB" type="button" aria-label="Свернуть шкалу" aria-expanded="true"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></button>
+    </div>
+    <div class="track">
+      <div class="day"><i id="dayspan"></i></div>
+      <div class="ivals" id="ivals"></div>
+      <input type="range" id="slider" min="0" max="1440" step="1" value="780" aria-label="Время суток" aria-valuetext="13:00">
+      <div class="ticks" id="ticks"></div>
+    </div>
+  </div>
+  <div class="err" id="err" hidden=""></div>
+</div>
+</main>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script type="module" src="omega-viewer.js"></script>
 
-      <div class="price-block">
-        <div class="price"><img src="assets/price-guild.svg" alt="153 861 000 ₽" /></div>
-        <div class="price-per-meter">2 101 928 ₽<small>цена за 1 м²</small></div>
-      </div>
 
-      <button class="book-button" type="button">Забронировать</button>
-      <div class="secondary-actions">
-        <button type="button">↓ Скачать .pdf</button>
-        <button type="button">✉ На e-mail</button>
-        <button type="button">⌯ Поделиться</button>
-      </div>
-
-      <div class="panel-footer">
-        <p>Демонстрационная визуализация. Положение солнца рассчитано по координатам объекта, дате, времени и ориентации квартиры.</p>
-        <img src="assets/aurix-logo.svg" alt="AURIX" />
-      </div>
-    </aside>
-  </main>
-
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
-      }
-    }
-  </script>
-  <script type="module" src="app.js"></script>
-</body>
-</html>
+</body></html>
