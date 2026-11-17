@@ -11,20 +11,19 @@
 <header class="site-header">
   <nav class="viewer-nav" aria-label="Управление просмотрщиком">
     <div class="navrow">
-      <button type="button" class="ptog card" id="ptog" aria-controls="apartmentPanel" aria-label="Скрыть панель" aria-expanded="true" title="Скрыть панель"><svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="3"></rect><path d="M9.5 4.5v15M15.5 9.5l-2.5 2.5 2.5 2.5"></path></svg></button>
-      <a class="back" id="back" href="catalog.html"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"></path></svg>Все планировки</a>
-      <div class="flip card" id="flip" hidden=""><a id="prevB" href="index.html" aria-label="Предыдущая квартира" title="Предыдущая квартира"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"></path></svg></a><span id="flipPos"></span><a id="nextB" href="index.html" aria-label="Следующая квартира" title="Следующая квартира"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></a></div>
+      <a class="back" id="back" href="catalog.html">Все планировки</a>
+      <div class="flip" id="flip" hidden=""><a id="prevB" href="index.html" aria-label="Предыдущая квартира" title="Предыдущая квартира"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"></path></svg></a><span id="flipPos"></span><a id="nextB" href="index.html" aria-label="Следующая квартира" title="Следующая квартира"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></a></div>
     </div>
   <div class="viewer-modes">
-    <div class="seg card" role="group" aria-label="Вид">
-      <button type="button" data-view="3d" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3zM4 7.5l8 4.5 8-4.5M12 12v9"></path></svg>3D</button>
-      <button type="button" data-view="top" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 12h16M12 4v16"></path></svg>Сверху</button>
-      <button type="button" data-view="plan" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M6 3h9l5 5v13H6zM15 3v5h5M9 13h6M9 17h6"></path></svg>План</button>
+    <div class="seg" role="group" aria-label="Вид">
+      <button type="button" data-view="3d" aria-pressed="true">3D</button>
+      <button type="button" data-view="top" aria-pressed="false">Сверху</button>
+      <button type="button" data-view="plan" aria-pressed="false">План</button>
     </div>
-    <div class="seg card" id="seasons" role="group" aria-label="Сезон"></div>
+    <div class="seg" id="seasons" role="group" aria-label="Сезон"></div>
   </div>
     <div class="tools" id="tools">
-      <button type="button" class="tool card" id="svcB" aria-expanded="false" aria-label="Сервис" title="Сервис: чертёж, замечание, модель, оформление"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"></path><circle cx="16" cy="7" r="2"></circle><circle cx="10" cy="17" r="2"></circle></svg></button>
+      <button type="button" class="tool" id="svcB" aria-expanded="false">Сервис</button>
       <div class="pop card svc" id="svcPop" role="menu" aria-label="Сервис" hidden="">
         <button type="button" role="menuitem" data-svc="ovB"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5 9-5z"></path><path d="M3 13l9 5 9-5"></path></svg>Чертёж поверх модели</button>
         <a class="source-link" role="menuitem" href="https://omega.photoreal3d.ru/s1_f02_3/" target="_blank" rel="noopener">Замечания и журнал</a>
@@ -57,9 +56,6 @@
     <section class="apartment-card" aria-labelledby="flatName">
       <h1 id="flatName">1-комнатная квартира №3</h1>
       <p id="flatArea">65,7 м²</p>
-      <button type="button" class="favorite" id="favorite" aria-pressed="false">
-        <span>В избранное</span><svg aria-hidden="true" viewBox="0 0 20 24"><path d="M3 22V2h14v20l-7-5z"/></svg>
-      </button>
       <dl class="apartment-facts">
         <div><dt>секция</dt><dd id="flatSection">1</dd></div>
         <div><dt>этаж</dt><dd id="flatFloor">2</dd></div>
@@ -67,15 +63,18 @@
       </dl>
     </section>
     <button type="button" class="fchip" id="fchip" hidden="" title="Сбросить фильтр: листать все квартиры"><span id="fchipT"></span><svg viewBox="0 0 24 24"><path d="M7 7l10 10M17 7L7 17"></path></svg></button>
-  <div class="facade" id="facade" hidden="" aria-label="Этаж квартиры на фасаде"><svg id="facSvg" viewBox="0 0 100 100"></svg><span id="facCap"></span></div>
     <div class="rooms" id="rooms">
       <header><span>Комнаты · прямое солнце</span><button type="button" id="roomsB" aria-label="Свернуть список" aria-expanded="true"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"></path></svg></button></header>
       <ul id="roomList"></ul>
     </div>
     </div>
-    <footer class="sidebar-footer"><img src="brand/wordmark-purple.svg" alt="AURIX" width="104" height="27"></footer>
+    <footer class="sidebar-footer">
+      <div class="facade" id="facade" hidden="" aria-label="Этаж квартиры на фасаде"><svg id="facSvg" viewBox="0 0 100 100"></svg><span id="facCap"></span></div>
+      <img src="brand/wordmark-purple.svg" alt="AURIX" width="104" height="27">
+    </footer>
   </aside>
   <div class="sun" id="sun" aria-label="Инсоляция квартиры">
+  <button type="button" class="ptog" id="ptog" aria-controls="apartmentPanel" aria-label="Скрыть панель квартиры" aria-expanded="true"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="3"></rect><path d="M9.5 4.5v15M15.5 9.5l-2.5 2.5 2.5 2.5"></path></svg></button>
   <canvas id="gl"></canvas>
   <div class="labels" id="labels"></div>
   <div class="plan2d" id="plan2d" hidden=""></div>

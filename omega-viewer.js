@@ -1,5 +1,11 @@
 import * as THREE from 'three';
-const response = await fetch(new URL('./apartment-data.json', import.meta.url));
+const themeBase = new URL('./theme/', import.meta.url);
+const [response, siteTheme] = await Promise.all([
+  fetch(new URL('./apartment-data.json', import.meta.url)),
+  fetch(new URL('current.json', themeBase), { cache: 'no-cache' })
+    .then(result => result.ok ? result.json() : null)
+    .catch(() => null),
+]);
 if (!response.ok) {
   const error = document.getElementById('err');
   error.textContent = 'Не удалось загрузить планировку. Обновите страницу.';
@@ -43,18 +49,6 @@ if (F) {
   $('flatRooms').textContent = F.rc;
 }
 
-const favorite = $('favorite');
-const favoriteKey = 'sun.favorite.' + F.id;
-function setFavorite(selected) {
-  favorite.setAttribute('aria-pressed', selected);
-  favorite.querySelector('span').textContent = selected ? 'В избранном' : 'В избранное';
-}
-setFavorite(store.get(favoriteKey) === '1');
-favorite.addEventListener('click', () => {
-  const selected = favorite.getAttribute('aria-pressed') !== 'true';
-  setFavorite(selected);
-  store.set(favoriteKey, selected ? '1' : '0');
-});
 // ── the flat among the others: arrows through the gallery's list (its filter, when the flat was opened from a filtered list), the floor on the house ──
 {
   const panel = $('apartmentPanel'), toggle = $('ptog');
@@ -279,6 +273,7 @@ const THEME_KEYS = [   // key, group, label, kind, default, min, max, step
   ['edgeA', 'Плашки', 'Светлая обводка', 'range', 0.72, 0, 1, 0.01], ['radius', 'Плашки', 'Скругление, px', 'range', 24, 0, 40, 1],
   ['shadowA', 'Плашки', 'Тень', 'range', 0.13, 0, 0.5, 0.01],
   ['sky1', 'Небо и свет', 'Небо днём, верх', 'color', '#9db4d8'], ['sky2', 'Небо и свет', 'Небо днём, низ', 'color', '#eef1f6'],     // the sky as it was: lilac, it met the ground in a hard line (Юрий, 13.11.2026)
+  ['skyCycle', 'Небо и свет', 'Затемнение сцены вечером и ночью', 'range', 1, 0, 1, 0.01],
   ['horizon', 'Небо и свет', 'Растушёвка горизонта', 'range', 1, 0, 1, 0.01],     // the ground melts into the sky over its outer part (Юрий, 13.11.2026: «граница между небом и землей… растушевана сильно»); 0 = the hard edge
   ['sunDay', 'Небо и свет', 'Солнце днём', 'color', '#fff3df'], ['sunLow', 'Небо и свет', 'Солнце у горизонта', 'color', '#ffb870'],
   ['sunMax', 'Небо и свет', 'Сила солнца', 'range', 9, 2, 16, 0.1], ['fill', 'Небо и свет', 'Рассеянный свет', 'range', 0.7, 0.2, 1.6, 0.01],
@@ -308,8 +303,9 @@ const TH_VARID = /^[a-z0-9-]{3,48}$/.test(TH_Q.get('theme') || '') ? TH_Q.get('t
     history.replaceState(null, '', location.pathname + location.search); }
   if (TH_Q.get('edit') === '1') thSet('ins.edit.on:' + TH_HOST, true);
   if (thGet('ins.edit.on:' + TH_HOST)) thSet('ins.edit.known:' + TH_HOST, true); })();
-const TH_L = { site: thClean(thGet('ins.theme.site:' + TH_HOST)), variant: TH_VARID ? thClean(thGet('ins.theme.var:' + TH_HOST + ':' + TH_VARID)) : {},
+const TH_L = { site: thClean(siteTheme), variant: TH_VARID ? thClean(thGet('ins.theme.var:' + TH_HOST + ':' + TH_VARID)) : {},
                draft: thClean(thGet('ins.theme.draft:' + TH_HOST)), editing: !!thGet('ins.edit.on:' + TH_HOST) };
+thSet('ins.theme.site:' + TH_HOST, TH_L.site);
 const TH = {};
 const thMerge = () => Object.assign(TH, TH_DEF, TH_L.site, TH_L.variant, TH_L.editing ? TH_L.draft : {});
 thMerge();
@@ -684,10 +680,17 @@ function updateSun() {
   sun.position.copy(target).addScaledVector(dir, R); sun.target.position.copy(target);
   const warm = clamp(s.alt / 25, 0, 1);
   sun.color.copy(col(TH.sunLow, TH.sunDay, warm)); sun.intensity = up ? lerp(2.5, TH.sunMax, clamp(s.alt / 20, 0, 1)) : 0; sun.visible = up;
-  const dayness = clamp((s.alt + 10) / 20, 0, 1); scene.environmentIntensity = lerp(0.08, 0.4, dayness);
-  const [k1, k2] = skyFor(s.alt); box.style.setProperty('--sky1', k1); box.style.setProperty('--sky2', k2);
+  const dayness = lerp(1, clamp((s.alt + 10) / 20, 0, 1), TH.skyCycle);
+  scene.environmentIntensity = lerp(0.08, 0.4, dayness);
+  const [k1, k2] = skyFor(s.alt);
+  const topSky = col(TH.sky1, k1, TH.skyCycle);
+  const bottomSky = col(TH.sky2, k2, TH.skyCycle);
+  box.style.setProperty('--sky1', topSky.getStyle());
+  box.style.setProperty('--sky2', bottomSky.getStyle());
   hemi.color.copy(col('#4e5f88', '#eef3fb', dayness)); hemi.groundColor.copy(col('#2f3442', '#d3d7e2', dayness)); hemi.intensity = lerp(0.45, TH.fill, dayness);       // little sky fill (was 1.15) and a mid-grey floor: the sun's patches need room above the shade to read, a light floor and a strong fill washed them out
-  M.ground.color.copy(col('#242a3a', TH.ground, dayness)); box.classList.toggle('dark', s.alt < -2);
+  M.ground.color.copy(col('#242a3a', TH.ground, dayness));
+  const skyLuminance = 0.2126 * topSky.r + 0.7152 * topSky.g + 0.0722 * topSky.b;
+  box.classList.toggle('dark', s.alt < -2 && skyLuminance < 0.16);
   renderer.toneMappingExposure = lerp(0.6, TH.exposure, dayness);
   sunBall.visible = ray.visible = up; sunBall.position.copy(target).addScaledVector(dir, diag * 0.9 + 2);
   sunBall.material.opacity = lerp(0.6, 1, warm);
@@ -787,9 +790,8 @@ $('play').addEventListener('click', () => {
 });
 
 // ── seasons ──
-const ICON = { winter: '<path d="M12 2v20M2 12h20M5 5l14 14M19 5L5 19"/>', mid: '<path d="M4 20c0-8 4-14 14-16-1 9-6 14-14 16zM4 20l8-8"/>', summer: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>' };
 for (const s of D.seasons) {
-  const b = document.createElement('button'); b.type = 'button'; b.dataset.key = s.key; b.innerHTML = `<svg viewBox="0 0 24 24">${ICON[s.key] || ''}</svg>${s.name}<small>${s.date}</small>`; b.setAttribute('aria-pressed', s === S.season);
+  const b = document.createElement('button'); b.type = 'button'; b.dataset.key = s.key; b.textContent = s.name; b.setAttribute('aria-pressed', s === S.season);
   b.addEventListener('click', () => { S.season = s; store.set('sun.season', s.key); [...$('seasons').children].forEach(x => x.setAttribute('aria-pressed', x === b)); updateDay(); updateSun(); hover(null); needs = true; });     // updateSun: with the camera at rest the season changed the hours in the list and left the sun and the shadows of the season before, until the slider or the camera moved (10.11.2026)
   $('seasons').appendChild(b);
 }
@@ -1095,9 +1097,7 @@ function thApply() {                                                            
   updateSun(); needs = true;
 }
 async function thLoad() {                                                                      // the site's theme and the variant asked for, fetched; kept for the next page's first frame
-  const base = new URL('./theme/', location.href);
-  try { const r = await fetch(new URL('current.json', base), { cache: 'no-store' }); TH_L.site = r.ok ? thClean(await r.json()) : {}; thSet('ins.theme.site:' + TH_HOST, TH_L.site); } catch (_) {}
-  if (TH_VARID) try { const r = await fetch(new URL(`variants/${TH_VARID}.json`, base), { cache: 'no-store' }); if (r.ok) { TH_L.variant = thClean(await r.json()); thSet('ins.theme.var:' + TH_HOST + ':' + TH_VARID, TH_L.variant); } } catch (_) {}
+  if (TH_VARID) try { const r = await fetch(new URL(`variants/${TH_VARID}.json`, themeBase), { cache: 'no-store' }); if (r.ok) { TH_L.variant = thClean(await r.json()); thSet('ins.theme.var:' + TH_HOST + ':' + TH_VARID, TH_L.variant); } } catch (_) {}
   thApply(); if (TH_L.editing) thEditor();
 }
 function thPill() {                                                                            // the editor hidden: a small button brings it back (in this browser only, where it was opened)
